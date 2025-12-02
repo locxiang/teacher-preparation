@@ -1,9 +1,10 @@
 import vue from "@vitejs/plugin-vue";
 import { fileURLToPath, URL } from "node:url";
+import mkcert from "vite-plugin-mkcert";
 
 /** @type {import('vite').UserConfig} */
 export default {
-  plugins: [vue()],
+  plugins: [vue(), mkcert()],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
@@ -15,6 +16,7 @@ export default {
     __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
   },
   server: {
+    https: true,
     port: 5173,
     host: "0.0.0.0", // 允许外部访问
     proxy: {
