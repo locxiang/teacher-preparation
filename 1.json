@@ -1,0 +1,417 @@
+{
+    "header": {
+        "nls_task_id": "db91046bf1554fc18b18d9f1f02cae77",
+        "task_key": "c6336810-a51c-4d00-aad2-5dd4965e0b27",
+        "namespace": "SpeechTranscriber",
+        "name": "SentenceEnd",
+        "task_id": "5a7f8b95b6574c75aa3ef48fd012c383",
+        "message_id": "3d743c7eb1e640b38af415d02174e415",
+        "status_text": "Success.",
+        "status": 20000000
+    },
+    "payload": {
+        "gender": "",
+        "sentence_id": "b195c6ef28f6457d98bccea69165450a",
+        "audio_extra_info": "",
+        "confidence": 0.0,
+        "words": [
+            {
+                "startTime": 89047,
+                "text": "主持人",
+                "endTime": 89581
+            },
+            {
+                "startTime": 89581,
+                "text": "介绍",
+                "endTime": 89937
+            },
+            {
+                "startTime": 89937,
+                "text": "的",
+                "endTime": 90115
+            },
+            {
+                "startTime": 90115,
+                "text": "工作",
+                "endTime": 90471
+            },
+            {
+                "startTime": 90471,
+                "text": "是",
+                "endTime": 90649
+            },
+            {
+                "startTime": 90649,
+                "text": "什么",
+                "endTime": 91005
+            },
+            {
+                "startTime": 91005,
+                "text": "原因",
+                "endTime": 91361
+            },
+            {
+                "startTime": 91361,
+                "text": "导致",
+                "endTime": 91717
+            },
+            {
+                "startTime": 91717,
+                "text": "的",
+                "endTime": 91907,
+                "punc": "。"
+            }
+        ],
+        "index": 2,
+        "begin_time": 89047,
+        "gender_score": 0.0,
+        "result": "主持人介绍的工作是什么原因导致的。",
+        "time": 91907,
+        "fixed_result": "",
+        "unfixed_result": "",
+        "status": 0,
+        "stash_result": {
+            "currentTime": 91907,
+            "words": [],
+            "sentenceId": 3,
+            "index": 3,
+            "unfixedText": "",
+            "beginTime": 91907,
+            "text": "",
+            "fixedText": ""
+        }
+    }
+}
+
+
+
+{
+    "header": {
+        "nls_task_id": "db91046bf1554fc18b18d9f1f02cae77",
+        "task_key": "c6336810-a51c-4d00-aad2-5dd4965e0b27",
+        "namespace": "SpeechTranscriber",
+        "name": "SentenceBegin",
+        "task_id": "5a7f8b95b6574c75aa3ef48fd012c383",
+        "message_id": "21d20e3ca10c4bf4b8948d5f50cce1e5",
+        "status_text": "Success.",
+        "status": 20000000
+    },
+    "payload": {
+        "index": 2,
+        "time": 89047
+    }
+}
+
+
+
+{
+    "header": {
+        "nls_task_id": "db91046bf1554fc18b18d9f1f02cae77",
+        "task_key": "c6336810-a51c-4d00-aad2-5dd4965e0b27",
+        "namespace": "SpeechTranscriber",
+        "name": "SentenceEnd",
+        "task_id": "5a7f8b95b6574c75aa3ef48fd012c383",
+        "message_id": "cebe5c54da964d93b7d97a48f735ac7e",
+        "status_text": "Success.",
+        "status": 20000000
+    },
+    "payload": {
+        "gender": "",
+        "sentence_id": "0ec239d4ef7a4989ab2a3dcb18d82069",
+        "audio_extra_info": "",
+        "confidence": 0.0,
+        "words": [
+            {
+                "startTime": 82207,
+                "text": "就是",
+                "endTime": 82587
+            },
+            {
+                "startTime": 82587,
+                "text": "会",
+                "endTime": 82777
+            },
+            {
+                "startTime": 82777,
+                "text": "不会",
+                "endTime": 83157
+            },
+            {
+                "startTime": 83157,
+                "text": "出现",
+                "endTime": 83537
+            },
+            {
+                "startTime": 83537,
+                "text": "两次",
+                "endTime": 83917
+            },
+            {
+                "startTime": 83917,
+                "text": "数据",
+                "endTime": 84297
+            },
+            {
+                "startTime": 84297,
+                "text": "之前",
+                "endTime": 84677
+            },
+            {
+                "startTime": 84677,
+                "text": "就",
+                "endTime": 84867
+            },
+            {
+                "startTime": 84867,
+                "text": "会",
+                "endTime": 85057
+            },
+            {
+                "startTime": 85057,
+                "text": "出现",
+                "endTime": 85437
+            },
+            {
+                "startTime": 85437,
+                "text": "两次",
+                "endTime": 85817
+            },
+            {
+                "startTime": 85817,
+                "text": "数据",
+                "endTime": 86197,
+                "punc": "，"
+            },
+            {
+                "startTime": 86197,
+                "text": "我",
+                "endTime": 86355
+            },
+            {
+                "startTime": 86355,
+                "text": "也",
+                "endTime": 86513
+            },
+            {
+                "startTime": 86513,
+                "text": "不",
+                "endTime": 86671
+            },
+            {
+                "startTime": 86671,
+                "text": "知道",
+                "endTime": 86987
+            },
+            {
+                "startTime": 86987,
+                "text": "为什么",
+                "endTime": 87461
+            },
+            {
+                "startTime": 87461,
+                "text": "看一看",
+                "endTime": 87935
+            },
+            {
+                "startTime": 87935,
+                "text": "是不是",
+                "endTime": 88409
+            },
+            {
+                "startTime": 88409,
+                "text": "这个",
+                "endTime": 88725
+            },
+            {
+                "startTime": 88725,
+                "text": "对话",
+                "endTime": 89047,
+                "punc": "。"
+            }
+        ],
+        "index": 1,
+        "begin_time": 81807,
+        "gender_score": 0.0,
+        "result": "就是会不会出现两次数据之前就会出现两次数据，我也不知道为什么看一看是不是这个对话。",
+        "time": 89047,
+        "fixed_result": "",
+        "unfixed_result": "",
+        "status": 0,
+        "stash_result": {
+            "currentTime": 91907,
+            "words": [
+                {
+                    "startTime": 89047,
+                    "fixed": true,
+                    "text": "主持人",
+                    "endTime": 89581
+                },
+                {
+                    "startTime": 89581,
+                    "fixed": true,
+                    "text": "介绍",
+                    "endTime": 89937
+                },
+                {
+                    "startTime": 89937,
+                    "fixed": true,
+                    "text": "的",
+                    "endTime": 90115
+                },
+                {
+                    "startTime": 90115,
+                    "text": "工作",
+                    "endTime": 90471
+                },
+                {
+                    "startTime": 90471,
+                    "text": "是",
+                    "endTime": 90649
+                },
+                {
+                    "startTime": 90649,
+                    "text": "什么",
+                    "endTime": 91005
+                },
+                {
+                    "startTime": 91005,
+                    "text": "原因",
+                    "endTime": 91361
+                },
+                {
+                    "startTime": 91361,
+                    "text": "导致",
+                    "endTime": 91717
+                },
+                {
+                    "startTime": 91717,
+                    "text": "的",
+                    "endTime": 91907
+                }
+            ],
+            "sentenceId": 2,
+            "index": 2,
+            "unfixedText": "",
+            "beginTime": 89047,
+            "text": "主持人介绍的工作是什么原因导致的",
+            "fixedText": ""
+        }
+    }
+}
+
+
+
+
+{
+    "header": {
+        "nls_task_id": "db91046bf1554fc18b18d9f1f02cae77",
+        "task_key": "c6336810-a51c-4d00-aad2-5dd4965e0b27",
+        "namespace": "SpeechTranscriber",
+        "name": "SentenceBegin",
+        "task_id": "5a7f8b95b6574c75aa3ef48fd012c383",
+        "message_id": "40f05af30e9a4ed99ff4b014e6ca3439",
+        "status_text": "Success.",
+        "status": 20000000
+    },
+    "payload": {
+        "index": 1,
+        "time": 81807
+    }
+}
+
+
+
+{
+    "header": {
+        "nls_task_id": "db91046bf1554fc18b18d9f1f02cae77",
+        "task_key": "c6336810-a51c-4d00-aad2-5dd4965e0b27",
+        "namespace": "SpeechTranscriber",
+        "name": "SentenceEnd",
+        "task_id": "5a7f8b95b6574c75aa3ef48fd012c383",
+        "message_id": "e94c136c55bb4f3a8edbe8f21a34ed90",
+        "status_text": "Success.",
+        "status": 20000000
+    },
+    "payload": {
+        "gender": "",
+        "sentence_id": "d056d95da1054210a12459b8e0fc2f54",
+        "audio_extra_info": "",
+        "confidence": 0.0,
+        "words": [
+            {
+                "startTime": 73517,
+                "text": "我",
+                "endTime": 73684
+            },
+            {
+                "startTime": 73684,
+                "text": "先",
+                "endTime": 73851
+            },
+            {
+                "startTime": 73851,
+                "text": "看",
+                "endTime": 74018
+            },
+            {
+                "startTime": 74018,
+                "text": "一下",
+                "endTime": 74352
+            },
+            {
+                "startTime": 74352,
+                "text": "数据",
+                "endTime": 74686
+            },
+            {
+                "startTime": 74686,
+                "text": "收发",
+                "endTime": 75020
+            },
+            {
+                "startTime": 75020,
+                "text": "音",
+                "endTime": 75187
+            },
+            {
+                "startTime": 75187,
+                "text": "做",
+                "endTime": 75354
+            },
+            {
+                "startTime": 75354,
+                "text": "的",
+                "endTime": 75521
+            },
+            {
+                "startTime": 75521,
+                "text": "有没有",
+                "endTime": 76022
+            },
+            {
+                "startTime": 76022,
+                "text": "问题",
+                "endTime": 76367,
+                "punc": "。"
+            }
+        ],
+        "index": 0,
+        "begin_time": 73087,
+        "gender_score": 0.0,
+        "result": "我先看一下数据收发音做的有没有问题。",
+        "time": 76367,
+        "fixed_result": "",
+        "unfixed_result": "",
+        "status": 0,
+        "stash_result": {
+            "currentTime": 76367,
+            "words": [],
+            "sentenceId": 1,
+            "index": 1,
+            "unfixedText": "",
+            "beginTime": 76367,
+            "text": "",
+            "fixedText": ""
+        }
+    }
+}

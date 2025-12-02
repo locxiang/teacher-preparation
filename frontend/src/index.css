@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+/* 修复 color-adjust 弃用警告 */
+@layer base {
+  * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
+
+/* Tailwind CSS v4 主题配置 */
+@theme {
+  --color-nanyu-50: #f6f1f8;
+  --color-nanyu-100: #ede4f1;
+  --color-nanyu-200: #dcc8e4;
+  --color-nanyu-300: #cbadd7;
+  --color-nanyu-400: #aa78bd;
+  --color-nanyu-500: #8943a3;
+  --color-nanyu-600: #6b2c91;
+  --color-nanyu-700: #562374;
+  --color-nanyu-800: #401a57;
+  --color-nanyu-900: #2b113a;
+
+  --font-family-sans: "Inter var", ui-sans-serif, system-ui, sans-serif;
+}
