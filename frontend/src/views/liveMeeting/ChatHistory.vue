@@ -44,6 +44,9 @@
             <span class="text-sm font-semibold mr-2" :class="message.type === 'ai' ? 'text-nanyu-700' : 'text-gray-800'">
               {{ message.speaker }}
             </span>
+            <span v-if="message.relativeTime !== undefined" class="text-xs text-gray-500 mr-1">
+              {{ formatRelativeTime(message.relativeTime) }}
+            </span>
             <span class="text-xs text-gray-400">{{ formatTime(message.timestamp) }}</span>
             <span v-if="message.stageIndex !== currentStageIndex" class="ml-2 text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">
               {{ stages[message.stageIndex]?.name }}
@@ -61,10 +64,6 @@
           >
             {{ message.content }}
             <span v-if="message.isFinal === false" class="ml-2 text-xs text-gray-400">(识别中...)</span>
-            <div v-if="message.type === 'ai'" class="mt-2 flex space-x-2">
-              <button class="text-xs bg-white border border-gray-200 px-2 py-1 rounded hover:border-nanyu-300 hover:text-nanyu-600 transition-colors">👍 有用</button>
-              <button class="text-xs bg-white border border-gray-200 px-2 py-1 rounded hover:border-nanyu-300 hover:text-nanyu-600 transition-colors">👎 无用</button>
-            </div>
           </div>
         </div>
       </div>
@@ -86,7 +85,8 @@ interface Message {
   type: 'human' | 'ai'
   speaker: string
   content: string
-  timestamp: number
+  timestamp: number // 绝对时间戳（真实时间）
+  relativeTime?: number // 相对时间（从录音开始的毫秒数）
   stageIndex: number
   isFinal?: boolean
 }
@@ -115,12 +115,27 @@ watch(() => props.messages.length, () => {
   })
 })
 
+// 格式化绝对时间（真实时间）
 const formatTime = (timestamp: number): string => {
   const date = new Date(timestamp)
   if (isNaN(date.getTime())) {
     return '00:00:00'
   }
   return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`
+}
+
+// 格式化相对时间（从录音开始的时长）
+const formatRelativeTime = (milliseconds: number): string => {
+  const totalSeconds = Math.floor(milliseconds / 1000)
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+
+  if (hours > 0) {
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+  } else {
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+  }
 }
 </script>
 

@@ -58,7 +58,7 @@
             />
 
             <!-- Reference Docs -->
-            <ReferenceDocs />
+            <ReferenceDocs :meeting-id="meetingId" />
           </div>
 
           <!-- Right Column: Chat History -->
@@ -103,7 +103,8 @@ interface Message {
   type: 'human' | 'ai'
   speaker: string
   content: string
-  timestamp: number
+  timestamp: number // 绝对时间戳（真实时间）
+  relativeTime?: number // 相对时间（从录音开始的毫秒数）
   stageIndex: number
   isFinal?: boolean
 }
@@ -202,6 +203,7 @@ const handleRecognitionResult = (result: RecognitionResult) => {
         speaker: speaker,
         content: result.text,
         timestamp: result.timestamp,
+        relativeTime: result.relativeTime,
         stageIndex: currentStageIndex.value,
         isFinal: true,
       }
@@ -215,6 +217,7 @@ const handleRecognitionResult = (result: RecognitionResult) => {
         speaker: speaker,
         content: result.text,
         timestamp: result.timestamp,
+        relativeTime: result.relativeTime,
         stageIndex: currentStageIndex.value,
         isFinal: false,
       }
@@ -225,6 +228,8 @@ const handleRecognitionResult = (result: RecognitionResult) => {
       if (index !== -1) {
         messages.value[index].content = result.text
         messages.value[index].speaker = speaker
+        messages.value[index].timestamp = result.timestamp
+        messages.value[index].relativeTime = result.relativeTime
       }
     }
   }
@@ -649,6 +654,7 @@ const triggerAISpeech = async () => {
             speaker: 'AI助手',
             content: aiResponseText,
             timestamp: Date.now(),
+            relativeTime: undefined, // AI消息没有相对时间
             stageIndex: currentStageIndex.value,
             isFinal: false,
           }
@@ -760,9 +766,28 @@ const handleStartRecording = async () => {
   try {
     errorMessage.value = ''
 
+    // 检查麦克风权限和音频流状态
     if (!hasMicrophonePermission.value || !audioStream) {
       errorMessage.value = '请先授权麦克风'
       return
+    }
+
+    // 检查音频流的 tracks 是否仍然活跃
+    const activeTracks = audioStream.getTracks().filter(track => track.readyState === 'live')
+    if (activeTracks.length === 0) {
+      console.log('[LiveMeeting] 音频流 tracks 已停止，重新获取麦克风权限')
+      // 清理旧的流
+      audioStream.getTracks().forEach(track => track.stop())
+      audioStream = null
+      hasMicrophonePermission.value = false
+
+      // 重新获取麦克风权限
+      await requestMicrophonePermission()
+
+      if (!hasMicrophonePermission.value || !audioStream) {
+        errorMessage.value = '无法重新获取麦克风权限'
+        return
+      }
     }
 
     if (!taskInfo.value?.MeetingJoinUrl) {

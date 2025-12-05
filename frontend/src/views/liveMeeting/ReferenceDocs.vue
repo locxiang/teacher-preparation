@@ -7,19 +7,95 @@
       参考资料
     </h3>
     <div class="overflow-y-auto flex-grow space-y-1">
-      <div class="flex items-center text-xs text-gray-600 hover:bg-gray-50 p-1.5 rounded cursor-pointer transition-colors">
-        <span class="text-red-500 mr-1.5">📄</span>
-        <span class="truncate">教学大纲.pdf</span>
+      <div v-if="isLoading" class="text-xs text-gray-400 text-center py-2">
+        加载中...
       </div>
-      <div class="flex items-center text-xs text-gray-600 hover:bg-gray-50 p-1.5 rounded cursor-pointer transition-colors">
-        <span class="text-blue-500 mr-1.5">📝</span>
-        <span class="truncate">教案模板.docx</span>
+      <div v-else-if="documents.length === 0" class="text-xs text-gray-400 text-center py-2">
+        暂无参考资料
+      </div>
+      <div
+        v-for="doc in documents"
+        :key="doc.id"
+        class="flex items-center text-xs text-gray-600 hover:bg-gray-50 p-1.5 rounded cursor-pointer transition-colors"
+        :title="doc.original_filename"
+      >
+        <span class="mr-1.5" :class="getFileIconClass(doc.file_type)">
+          {{ getFileIcon(doc.file_type) }}
+        </span>
+        <span class="truncate">{{ doc.original_filename }}</span>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-// 参考资料组件，目前使用静态数据，后续可以扩展为动态数据
+import { ref, onMounted, watch } from 'vue'
+import { getDocuments, type Document } from '@/services/document'
+
+interface Props {
+  meetingId: string
+}
+
+const props = defineProps<Props>()
+
+const documents = ref<Document[]>([])
+const isLoading = ref(false)
+
+// 获取文件图标
+const getFileIcon = (fileType: string): string => {
+  const iconMap: Record<string, string> = {
+    pdf: '📄',
+    doc: '📝',
+    docx: '📝',
+    ppt: '📊',
+    pptx: '📊',
+    txt: '📃',
+    md: '📃',
+    xls: '📈',
+    xlsx: '📈',
+  }
+  return iconMap[fileType.toLowerCase()] || '📄'
+}
+
+// 获取文件图标颜色类
+const getFileIconClass = (fileType: string): string => {
+  const colorMap: Record<string, string> = {
+    pdf: 'text-red-500',
+    doc: 'text-blue-500',
+    docx: 'text-blue-500',
+    ppt: 'text-orange-500',
+    pptx: 'text-orange-500',
+    txt: 'text-gray-500',
+    md: 'text-gray-500',
+    xls: 'text-green-500',
+    xlsx: 'text-green-500',
+  }
+  return colorMap[fileType.toLowerCase()] || 'text-gray-500'
+}
+
+// 加载文档列表
+const loadDocuments = async () => {
+  if (!props.meetingId) return
+
+  isLoading.value = true
+  try {
+    const data = await getDocuments(props.meetingId)
+    documents.value = data
+  } catch (error) {
+    console.error('加载参考资料失败:', error)
+    documents.value = []
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// 监听 meetingId 变化
+watch(() => props.meetingId, () => {
+  loadDocuments()
+})
+
+onMounted(() => {
+  loadDocuments()
+})
 </script>
 

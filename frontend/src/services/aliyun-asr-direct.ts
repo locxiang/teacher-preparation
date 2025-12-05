@@ -8,7 +8,8 @@ import type { RecognitionCallback, ErrorCallback } from './aliyun-asr'
 interface RecognitionResult {
   text: string
   isFinal: boolean
-  timestamp: number
+  timestamp: number // 绝对时间戳（真实时间）
+  relativeTime?: number // 相对时间（从录音开始的毫秒数）
   speaker?: string
   confidence?: number
 }
@@ -21,6 +22,7 @@ export class AliyunASRDirectService {
   private onErrorCallback: ErrorCallback | null = null
   private audioContext: AudioContext | null = null
   private mediaStream: MediaStream | null = null
+  private isExternalStream = false // 标记是否是外部传入的 stream
   private audioProcessor: ScriptProcessorNode | AudioWorkletNode | null = null
   private analyser: AnalyserNode | null = null
   private audioDataCallback: ((data: Uint8Array) => void) | null = null
@@ -28,6 +30,7 @@ export class AliyunASRDirectService {
   private sendInterval: number | null = null // 发送定时器
   private connectionEvent: Promise<void> | null = null // 连接事件
   private startTranscriptionSent = false // 是否已发送StartTranscription
+  private recordingStartTime: number = 0 // 录音开始的时间戳（用于将相对时间转换为绝对时间）
 
   /**
    * 连接WebSocket
@@ -77,6 +80,14 @@ export class AliyunASRDirectService {
           console.log('关闭码:', event.code)
           console.log('关闭原因:', event.reason)
           console.log('是否正常关闭:', event.wasClean)
+
+          // 如果不是正常关闭（关闭码1000），可能是错误导致的
+          if (event.code !== 1000 && this.isRecording) {
+            const errorMsg = event.reason || `WebSocket连接意外关闭 (关闭码: ${event.code})`
+            console.error('WebSocket异常关闭:', errorMsg)
+            this.onErrorCallback?.(new Error(errorMsg))
+          }
+
           this.isRecording = false
           this.startTranscriptionSent = false
         }
@@ -142,7 +153,7 @@ export class AliyunASRDirectService {
 
       // 解析JSON消息
       const message = JSON.parse(data as string)
-      console.log('收到阿里云WebSocket消息:', message)
+      console.log('收到阿里云WebSocket消息:', JSON.stringify(message, null, 2))
 
       // 根据阿里云文档解析消息格式
       // 参考：https://help.aliyun.com/zh/tingwu/js-push-stream
@@ -150,25 +161,60 @@ export class AliyunASRDirectService {
       const payload = message.payload || {}
       const eventName = header.name || ''
 
-      // 检查错误
-      if (message.ErrorCode || message.error) {
-        const errorCode = message.ErrorCode || message.error?.code
-        const errorMsg = message.ErrorMessage || message.error?.message || '未知错误'
-        console.error(`通义听悟返回错误: Code=${errorCode}, Message=${errorMsg}`)
+      // 检查错误 - 只检查header中的status字段（阿里云标准错误格式）
+      // 注意：payload.status可能有其他含义（如句子状态），不应作为错误判断依据
+      const status = header.status
+      if (status !== undefined && status !== 20000000) {
+        const statusText = header.status_text || '未知错误'
+        console.error(`通义听悟返回错误: Status=${status}, Message=${statusText}`)
+        console.error('完整错误消息:', JSON.stringify(message, null, 2))
+        this.onErrorCallback?.(new Error(`通义听悟错误: ${statusText} (状态码: ${status})`))
+        // 关闭连接
+        if (this.ws) {
+          this.ws.close()
+        }
+        return
+      }
+
+      // 检查根级别的错误字段
+      if (message.ErrorCode) {
+        const errorMsg = message.ErrorMessage || '未知错误'
+        console.error(`通义听悟返回错误: Code=${message.ErrorCode}, Message=${errorMsg}`)
+        console.error('完整错误消息:', JSON.stringify(message, null, 2))
         this.onErrorCallback?.(new Error(`通义听悟错误: ${errorMsg}`))
+        // 关闭连接
+        if (this.ws) {
+          this.ws.close()
+        }
+        return
+      }
+
+      // 检查error对象
+      if (message.error && (message.error.code || message.error.message)) {
+        const errorCode = message.error.code
+        const errorMsg = message.error.message || '未知错误'
+        console.error(`通义听悟返回错误: Code=${errorCode}, Message=${errorMsg}`)
+        console.error('完整错误消息:', JSON.stringify(message, null, 2))
+        this.onErrorCallback?.(new Error(`通义听悟错误: ${errorMsg}`))
+        // 关闭连接
+        if (this.ws) {
+          this.ws.close()
+        }
         return
       }
 
       let text: string | null = null
       let isFinal = false
       let timestamp = Date.now()
+      let relativeTime: number | undefined = undefined
       let speaker: string | undefined = undefined
 
       // 根据事件类型处理
       switch (eventName) {
         case 'TranscriptionStarted':
-          // 转写已启动
-          console.log('语音识别已启动，任务ID:', header.task_id)
+          // 转写已启动，记录录音开始时间
+          this.recordingStartTime = Date.now()
+          console.log('语音识别已启动，任务ID:', header.task_id, '录音开始时间:', new Date(this.recordingStartTime).toLocaleTimeString())
           break
 
         case 'SentenceBegin':
@@ -179,7 +225,18 @@ export class AliyunASRDirectService {
           // 中间结果
           text = payload.result || ''
           isFinal = false
-          timestamp = payload.time || Date.now()
+          // payload.time 是相对时间（从录音开始的毫秒数）
+          if (payload.time) {
+            relativeTime = payload.time
+            // 转换为绝对时间戳
+            if (this.recordingStartTime > 0) {
+              timestamp = this.recordingStartTime + payload.time
+            } else {
+              timestamp = Date.now()
+            }
+          } else {
+            timestamp = Date.now()
+          }
           console.debug('中间结果:', text)
           break
 
@@ -188,14 +245,25 @@ export class AliyunASRDirectService {
           const resultText = payload.result || ''
           text = resultText.trim()
           isFinal = true
-          timestamp = payload.time || Date.now()
+          // payload.time 是相对时间（从录音开始的毫秒数）
+          if (payload.time) {
+            relativeTime = payload.time
+            // 转换为绝对时间戳
+            if (this.recordingStartTime > 0) {
+              timestamp = this.recordingStartTime + payload.time
+            } else {
+              timestamp = Date.now()
+            }
+          } else {
+            timestamp = Date.now()
+          }
           // 提取说话人信息（如果有）
           const speakerId = payload.speaker_id || payload.speakerId || payload.role_id || payload.roleId
           if (speakerId !== undefined && speakerId !== null) {
             // 将说话人ID转换为名称（0 -> 说话人1, 1 -> 说话人2, 等）
             speaker = `说话人${Number(speakerId) + 1}`
           }
-          console.log('最终结果:', text, '说话人:', speaker || '未知')
+          console.log('最终结果:', text, '说话人:', speaker || '未知', '相对时间:', relativeTime, 'ms, 绝对时间:', new Date(timestamp).toLocaleTimeString())
           break
 
         case 'ResultTranslated':
@@ -213,6 +281,7 @@ export class AliyunASRDirectService {
           text,
           isFinal,
           timestamp,
+          relativeTime,
           speaker,
         })
       }
@@ -239,6 +308,7 @@ export class AliyunASRDirectService {
       // 2. 获取或使用外部MediaStream
       if (externalStream) {
         this.mediaStream = externalStream
+        this.isExternalStream = true
         console.log('Using external MediaStream')
       } else {
         this.mediaStream = await navigator.mediaDevices.getUserMedia({
@@ -250,11 +320,17 @@ export class AliyunASRDirectService {
             autoGainControl: true,
           },
         })
+        this.isExternalStream = false
         console.log('Created internal MediaStream')
       }
 
       // 3. 设置音频处理
       await this.setupAudioProcessing()
+
+      // 记录录音开始时间（如果TranscriptionStarted消息未及时到达，使用此时间）
+      if (this.recordingStartTime === 0) {
+        this.recordingStartTime = Date.now()
+      }
 
       this.isRecording = true
       console.log('语音识别已启动')
@@ -417,10 +493,13 @@ export class AliyunASRDirectService {
       this.audioContext = null
     }
 
-    if (this.mediaStream) {
+    // 只停止内部创建的 stream，外部传入的 stream 由调用方管理
+    if (this.mediaStream && !this.isExternalStream) {
       this.mediaStream.getTracks().forEach((track) => track.stop())
-      this.mediaStream = null
     }
+    this.mediaStream = null
+    this.isExternalStream = false
+    this.recordingStartTime = 0
 
     this.startTranscriptionSent = false
     console.log('语音识别已停止')
