@@ -285,6 +285,20 @@ export class AliyunTTSService {
     console.log('[TTS] WebSocket URL:', wsUrl.replace(/token=[^&]+/, 'token=***'))
 
     return new Promise((resolve, reject) => {
+      let synthesisStartedResolve: (() => void) | null = null
+      let synthesisStartedReject: ((error: Error) => void) | null = null
+      const synthesisStartedPromise = new Promise<void>((res, rej) => {
+        synthesisStartedResolve = res
+        synthesisStartedReject = rej
+      })
+
+      // 设置超时，防止无限等待
+      const timeout = setTimeout(() => {
+        if (synthesisStartedReject) {
+          synthesisStartedReject(new Error('等待SynthesisStarted确认超时'))
+        }
+      }, 10000) // 10秒超时
+
       try {
         this.ws = new WebSocket(wsUrl)
         this.ws.binaryType = 'arraybuffer' // 重要：设置二进制类型为arraybuffer
@@ -312,7 +326,7 @@ export class AliyunTTSService {
 
             console.log('[TTS] 发送StartSynthesis指令:', JSON.stringify(params, null, 2))
             this.ws.send(JSON.stringify(params))
-            resolve()
+            // 不在这里resolve，等待SynthesisStarted确认
           }
         }
 
@@ -347,6 +361,10 @@ export class AliyunTTSService {
               if (name === 'SynthesisStarted' && status === 20000000) {
                 console.log('[TTS] ✅ 语音合成已开始')
                 this.isSynthesisStarted = true
+                clearTimeout(timeout)
+                if (synthesisStartedResolve) {
+                  synthesisStartedResolve()
+                }
                 return // 成功开始，继续处理
               }
 
@@ -373,6 +391,12 @@ export class AliyunTTSService {
                 const errorMsg = statusText || statusMessage || `语音合成失败 (错误码: ${status || '未知'})`
                 console.error('[TTS] ❌ 语音合成失败:', errorMsg, '状态码:', status, '消息名称:', name)
                 console.error('[TTS] 完整错误消息:', JSON.stringify(body, null, 2))
+
+                // 如果还在等待SynthesisStarted，则reject Promise
+                clearTimeout(timeout)
+                if (synthesisStartedReject) {
+                  synthesisStartedReject(new Error(errorMsg))
+                }
 
                 // 立即停止播放音频（这会清空队列并停止当前播放）
                 console.log('[TTS] 立即停止播放音频并清空队列')
@@ -410,6 +434,10 @@ export class AliyunTTSService {
 
         this.ws.onerror = (error) => {
           console.error('[TTS] ❌ WebSocket错误:', error)
+          clearTimeout(timeout)
+          if (synthesisStartedReject) {
+            synthesisStartedReject(error instanceof Error ? error : new Error('WebSocket连接错误'))
+          }
           if (this.onErrorCallback) {
             this.onErrorCallback(new Error('WebSocket连接错误'))
           }
@@ -418,6 +446,12 @@ export class AliyunTTSService {
 
         this.ws.onclose = (event) => {
           console.log('[TTS] WebSocket连接已关闭，代码:', event.code, '原因:', event.reason, 'wasClean:', event.wasClean)
+          
+          // 如果还在等待SynthesisStarted，则reject Promise
+          clearTimeout(timeout)
+          if (synthesisStartedReject && !this.isSynthesisStarted) {
+            synthesisStartedReject(new Error(`WebSocket连接关闭: ${event.reason || '未知原因'}`))
+          }
 
           // WebSocket关闭不代表音频播放完成，音频播放速度更慢
           // 只有在发生错误时才停止播放，正常关闭时让音频继续播放
@@ -431,8 +465,20 @@ export class AliyunTTSService {
           this.ws = null
           this.isSynthesisStarted = false
         }
+
+        // 等待SynthesisStarted确认后再resolve
+        synthesisStartedPromise
+          .then(() => {
+            console.log('[TTS] ✅ SynthesisStarted确认收到，startSynthesis完成')
+            resolve()
+          })
+          .catch((error) => {
+            console.error('[TTS] ❌ 等待SynthesisStarted失败:', error)
+            reject(error)
+          })
       } catch (error) {
         console.error('[TTS] ❌ 创建WebSocket失败:', error)
+        clearTimeout(timeout)
         reject(error)
       }
     })

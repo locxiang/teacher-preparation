@@ -31,7 +31,30 @@ def stream_ai_chat():
         data = request.get_json()
         
         meeting_id = data.get('meeting_id')
-        chat_history = data.get('chat_history', '')
+        
+        # 处理消息格式（OpenAI风格）
+        messages = data.get('messages', [])
+        max_history = data.get('max_history')
+        
+        # 向后兼容：如果传递了 chat_history 字符串
+        chat_history_str = data.get('chat_history', '')
+        
+        # 如果传递了 messages 数组，使用新格式
+        if messages and isinstance(messages, list) and len(messages) > 0:
+            # 如果指定了 max_history，截取最近的消息
+            if max_history and isinstance(max_history, int) and max_history > 0:
+                messages = messages[-max_history:]
+            
+            # 将消息数组转换为字符串格式（用于构建 prompt）
+            chat_history_str = '\n\n'.join([
+                f"{'用户' if msg.get('role') == 'user' else 'AI助手'}: {msg.get('content', '')}"
+                for msg in messages
+                if msg.get('content', '').strip()  # 过滤空内容
+            ])
+        
+        # 记录日志以便调试
+        logger.info(f"AI对话请求 - meeting_id: {meeting_id}, messages数量: {len(messages) if isinstance(messages, list) else 0}, max_history: {max_history}, chat_history长度: {len(chat_history_str)}")
+        logger.debug(f"请求数据: {json.dumps(data, ensure_ascii=False, default=str)}")
         
         # 检查配置
         if not DASHSCOPE_AVAILABLE:
@@ -53,11 +76,15 @@ def stream_ai_chat():
             }), 500
         
         # 构建提示词
-        prompt = build_prompt(meeting_id, chat_history)
+        prompt = build_prompt(meeting_id, chat_history_str)
+        logger.info(f"构建的提示词长度: {len(prompt)}, 前100字符: {prompt[:100]}...")
         
         def generate():
             """生成SSE流"""
             try:
+                logger.info("开始调用DashScope API进行流式响应")
+                start_time = __import__('time').time()
+                
                 # 尝试流式调用
                 try:
                     response = Application.call(
@@ -66,13 +93,24 @@ def stream_ai_chat():
                         prompt=prompt,
                         stream=True  # 启用流式响应
                     )
+                    logger.info(f"DashScope API调用成功，响应类型: {type(response)}")
                     
                     # 检查是否是流式响应（可迭代对象）
                     if hasattr(response, '__iter__') and not isinstance(response, (str, bytes)):
                         # 流式响应处理
                         # DashScope SDK 的流式响应返回的是累积的完整文本，需要提取增量
                         accumulated_text = ""
+                        chunk_count = 0
+                        first_chunk_time = None
+                        
+                        logger.info("开始处理流式响应chunks")
                         for chunk in response:
+                            chunk_count += 1
+                            if first_chunk_time is None:
+                                first_chunk_time = __import__('time').time()
+                                elapsed = first_chunk_time - start_time
+                                logger.info(f"收到第一个chunk，耗时: {elapsed:.2f}秒")
+                            
                             text = None
                             
                             # 尝试多种方式提取文本
@@ -98,6 +136,7 @@ def stream_ai_chat():
                                         chunk_data = {
                                             "content": incremental_text
                                         }
+                                        logger.debug(f"发送chunk #{chunk_count}, 增量长度: {len(incremental_text)}, 内容: {incremental_text[:50]}...")
                                         yield f"data: {json.dumps(chunk_data, ensure_ascii=False)}\n\n"
                                 else:
                                     # 如果不是累积文本，直接发送（可能是增量格式）
@@ -105,7 +144,11 @@ def stream_ai_chat():
                                     chunk_data = {
                                         "content": text
                                     }
+                                    logger.debug(f"发送chunk #{chunk_count}, 文本长度: {len(text)}, 内容: {text[:50]}...")
                                     yield f"data: {json.dumps(chunk_data, ensure_ascii=False)}\n\n"
+                        
+                        total_time = __import__('time').time() - start_time
+                        logger.info(f"流式响应完成，共处理 {chunk_count} 个chunks，总耗时: {total_time:.2f}秒，累计文本长度: {len(accumulated_text)}")
                     
                     # 非流式响应（单个响应对象）
                     elif response.status_code == HTTPStatus.OK:
@@ -140,7 +183,8 @@ def stream_ai_chat():
                         
                 except Exception as stream_error:
                     # 如果流式调用失败，回退到非流式调用
-                    logger.warning(f"流式调用失败: {str(stream_error)}，尝试非流式调用")
+                    logger.error(f"流式调用失败: {str(stream_error)}，错误类型: {type(stream_error).__name__}", exc_info=True)
+                    logger.warning("尝试非流式调用作为回退方案")
                     
                     response = Application.call(
                         api_key=Config.DASHSCOPE_API_KEY,

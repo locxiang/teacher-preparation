@@ -17,6 +17,7 @@
         <nav class="hidden md:flex items-center space-x-6">
           <template v-if="authStore.isAuthenticated.value">
             <router-link to="/" class="hover:text-nanyu-100 transition-colors font-medium">首页</router-link>
+            <router-link to="/realtime-chat" class="hover:text-nanyu-100 transition-colors font-medium">实时对话</router-link>
             <router-link to="/ai-chat" class="hover:text-nanyu-100 transition-colors font-medium">AI对话</router-link>
             <router-link to="/demo-ali" class="hover:text-nanyu-100 transition-colors font-medium">语音识别</router-link>
             <router-link to="/settings" class="hover:text-nanyu-100 transition-colors font-medium">设置</router-link>

@@ -80,6 +80,12 @@ const routes: Array<RouteRecordRaw> = [
     meta: { title: 'AI智能对话', requiresAuth: true }
   },
   {
+    path: '/realtime-chat',
+    name: 'RealtimeChat',
+    component: () => import('./views/RealtimeChat.vue'),
+    meta: { title: 'AI实时对话', requiresAuth: true }
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('./views/NotFound.vue'),
