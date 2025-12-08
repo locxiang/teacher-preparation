@@ -67,6 +67,11 @@
               :messages="messages"
               :stages="stages"
               :current-stage-index="currentStageIndex"
+              :is-recording="isRecording"
+              :is-a-i-generating="isAIGenerating"
+              :is-a-i-speaking="isAISpeaking"
+              @trigger-ai="triggerAISpeech"
+              @stop-ai-voice="stopAIVoicePlayback"
             />
           </div>
         </div>
@@ -560,7 +565,27 @@ const synthesizeText = (text: string) => {
   }
 }
 
-// 停止AI语音播放
+// 停止AI语音播放（仅停止播放器，不关闭TTS服务）
+const stopAIVoicePlayback = () => {
+  if (ttsService) {
+    // 只调用播放器的 stop 方法，不关闭 TTS 服务
+    ttsService.stopPlayback()
+  }
+  isAISpeaking.value = false
+  pendingTextBuffer = ''
+
+  // 如果AI被中断，重置静默开始时间
+  if (aiSpeechStartTime !== null && isRecording.value) {
+    const now = Date.now()
+    silenceStartTime = now
+    lastSpeechTimestamp.value = now
+    silenceDuration.value = 0
+    aiSpeechStartTime = null
+    console.log('[LiveMeeting] ✅ AI播放已停止，重新开始静默计时')
+  }
+}
+
+// 停止AI语音播放（完全停止，包括关闭服务）
 const stopAIVoice = () => {
   if (ttsService) {
     ttsService.stopPlayback()
