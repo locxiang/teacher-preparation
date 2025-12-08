@@ -491,6 +491,19 @@ const handleAudioData = (data: Uint8Array) => {
 
 // 初始化语音合成
 const initTTS = async (): Promise<void> => {
+  // 如果已经有TTS服务正在运行，先停止之前的服务
+  if (ttsService) {
+    console.log('[LiveMeeting] 检测到已有TTS服务，先清理旧服务')
+    try {
+      ttsService.stopPlayback()
+      ttsService.stopSynthesis()
+      ttsService.close()
+    } catch (error) {
+      console.error('[LiveMeeting] 清理旧TTS服务失败:', error)
+    }
+    ttsService = null
+  }
+
   console.log('[LiveMeeting] 开始初始化语音合成服务')
   try {
     const { token, app_key } = await getTTSToken()
@@ -514,6 +527,15 @@ const initTTS = async (): Promise<void> => {
         console.error('[LiveMeeting] ❌ 语音合成错误:', error)
         isAISpeaking.value = false
         errorMessage.value = `语音合成失败: ${error.message}`
+        // 清理TTS服务
+        if (ttsService) {
+          try {
+            ttsService.close()
+          } catch (e) {
+            console.error('[LiveMeeting] 关闭TTS服务失败:', e)
+          }
+          ttsService = null
+        }
       },
       () => {
         console.log('[LiveMeeting] ✅ 音频播放完成')
@@ -643,23 +665,27 @@ const triggerAISpeech = async () => {
   // 暂停静默计时（不清除 silenceStartTime，但会在计时器中检查 AI 状态）
   console.log('[LiveMeeting] ⏸️ AI开始说话，暂停静默计时')
 
-  const humanMessages = messages.value
-    .filter(msg => msg.type === 'human' && msg.isFinal)
+  // 获取最近的对话消息（包括人类和AI消息），转换为OpenAI格式
+  const recentMessages = messages.value
+    .filter(msg => msg.isFinal)
     .slice(-10)
+    .map(msg => ({
+      role: msg.type === 'ai' ? 'assistant' as const : 'user' as const,
+      content: msg.type === 'human'
+        ? `${msg.speaker || '未知'}: ${msg.content}`
+        : msg.content,
+    }))
 
-  let chatHistoryText = ''
-  if (humanMessages.length > 0) {
-    chatHistoryText = humanMessages
-      .map(msg => {
-        const speaker = msg.speaker || '未知'
-        return `${speaker}: ${msg.content}`
-      })
-      .join('\n')
-  } else {
-    chatHistoryText = `会议主题: ${meeting.value?.name || '备课会议'}`
+  // 如果没有历史消息，添加会议主题作为初始消息
+  if (recentMessages.length === 0) {
+    recentMessages.push({
+      role: 'user',
+      content: `会议主题: ${meeting.value?.name || '备课会议'}`,
+    })
   }
 
-  await initTTS()
+  // 标记是否已经初始化TTS（延迟初始化，在收到第一个chunk时才初始化）
+  let ttsInitialized = false
 
   const aiMessageId = `ai_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   let aiResponseText = ''
@@ -667,8 +693,8 @@ const triggerAISpeech = async () => {
   try {
     await streamAIChat(
       meetingId.value || undefined,
-      chatHistoryText,
-      (chunk: string) => {
+      recentMessages, // 传递消息数组而不是字符串
+      async (chunk: string) => {
         aiResponseText += chunk
 
         const existingIndex = messages.value.findIndex(m => m.id === aiMessageId)
@@ -688,7 +714,60 @@ const triggerAISpeech = async () => {
           messages.value[existingIndex].content = aiResponseText
         }
 
+        // 延迟初始化TTS（在收到第一个chunk时才初始化）
+        // 注意：如果 ttsService 存在但已失败，需要先清理
         if (ttsService) {
+          // 检查TTS服务是否仍然有效（通过检查WebSocket状态）
+          // 如果服务已失败，清理它
+          try {
+            // 尝试发送文本，如果失败说明服务已失效
+            synthesizeText(chunk)
+          } catch (error) {
+            console.warn('[LiveMeeting] TTS服务可能已失效，清理并重新初始化:', error)
+            if (ttsService) {
+              try {
+                ttsService.close()
+              } catch (e) {
+                // 忽略清理错误
+              }
+              ttsService = null
+              ttsInitialized = false // 重置标志，允许重新初始化
+            }
+          }
+        }
+
+        if (!ttsInitialized && !ttsService) {
+          console.log('[LiveMeeting] 收到第一个AI响应chunk，开始初始化TTS，chunk内容:', chunk.substring(0, 50))
+          ttsInitialized = true
+          try {
+            console.log('[LiveMeeting] 准备初始化TTS，chunk内容:', chunk.substring(0, 50))
+            await initTTS()
+            console.log('[LiveMeeting] TTS初始化完成，ttsService状态:', ttsService ? '存在' : '不存在')
+
+            // TTS初始化成功后，立即发送第一个chunk，避免连接空闲超时
+            if (ttsService && chunk.trim()) {
+              console.log('[LiveMeeting] TTS初始化成功，立即发送第一个chunk:', chunk.substring(0, 50))
+              try {
+                (ttsService as AliyunTTSService).sendText(chunk.trim())
+                console.log('[LiveMeeting] ✅ 第一个chunk已发送到TTS')
+              } catch (sendError) {
+                console.error('[LiveMeeting] 发送第一个chunk失败:', sendError)
+              }
+            } else {
+              console.warn('[LiveMeeting] TTS初始化后无法发送chunk:', {
+                ttsService: !!ttsService,
+                chunk: chunk.substring(0, 50),
+                chunkTrimmed: chunk.trim(),
+              })
+            }
+          } catch (error) {
+            console.error('[LiveMeeting] TTS初始化失败:', error)
+            // 即使TTS初始化失败，也继续处理文本
+            ttsService = null // 确保清理失败的实例
+            ttsInitialized = false // 允许下次重试
+          }
+        } else if (ttsService) {
+          // 如果TTS已初始化，实时合成语音
           synthesizeText(chunk)
         }
       },
