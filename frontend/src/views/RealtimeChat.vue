@@ -250,6 +250,8 @@ const audioStream = ref<MediaStream | null>(null)
 let asrService: AliyunISIASRService | null = null
 let ttsService: AliyunTTSService | null = null
 let pendingTextBuffer = ''
+// 缓存TTS初始化完成前到达的chunks，避免丢失
+let pendingChunksBeforeTTSReady: string[] = []
 
 // 配置 marked
 marked.setOptions({
@@ -330,10 +332,20 @@ const initTTS = async () => {
     return
   }
 
-  // 如果已经有TTS服务正在运行，先停止之前的播放
-  if (ttsService && isAISpeaking.value) {
-    console.log('[RealtimeChat] 停止之前的AI声音播放，开始新的播放')
-    stopVoice()
+  // 如果已经有TTS服务正在运行，先停止之前的播放和合成，避免两段音频同时播放
+  if (ttsService) {
+    console.log('[RealtimeChat] 检测到已有TTS服务，先停止之前的播放和合成')
+    try {
+      ttsService.stopPlayback() // 停止音频播放
+      ttsService.stopSynthesis() // 停止合成
+      ttsService.close() // 关闭连接
+    } catch (error) {
+      console.error('[RealtimeChat] 清理旧TTS服务失败:', error)
+    }
+    ttsService = null
+    pendingTextBuffer = '' // 清空待发送的文本缓冲区
+    pendingChunksBeforeTTSReady = [] // 清空TTS初始化前的缓存
+    isAISpeaking.value = false // 重置状态
   }
 
   try {
@@ -383,6 +395,7 @@ const initTTS = async () => {
           ttsService = null
         }
         pendingTextBuffer = ''
+        pendingChunksBeforeTTSReady = [] // 清空TTS初始化前的缓存
 
         // AI播放完成后，自动开始监听（录音）
         nextTick(() => {
@@ -505,22 +518,29 @@ const sendAIMessage = async () => {
           if (!ttsInitialized && !ttsService) {
             console.log('[RealtimeChat] 收到第一个AI响应chunk，开始初始化TTS，chunk内容:', chunk.substring(0, 50))
             ttsInitialized = true
+            // 缓存第一个chunk，等TTS初始化完成后再发送
+            pendingChunksBeforeTTSReady = [chunk]
+
             try {
               console.log('[RealtimeChat] 准备初始化TTS，chunk内容:', chunk.substring(0, 50))
               await initTTS()
               console.log('[RealtimeChat] TTS初始化完成，ttsService状态:', ttsService ? '存在' : '不存在')
 
-              // TTS初始化成功后，立即发送第一个chunk，避免连接空闲超时
-              if (ttsService && chunk.trim()) {
-                console.log('[RealtimeChat] TTS初始化成功，立即发送第一个chunk:', chunk.substring(0, 50))
-                // 直接发送，不使用缓冲区，确保立即发送
+              // TTS初始化成功后，发送所有缓存的chunks（包括第一个chunk）
+              if (ttsService && pendingChunksBeforeTTSReady.length > 0) {
+                const allPendingText = pendingChunksBeforeTTSReady.join('')
+                console.log('[RealtimeChat] TTS初始化成功，发送所有缓存的chunks，总长度:', allPendingText.length)
                 try {
-                  // TypeScript类型断言，确保类型正确
-                  (ttsService as AliyunTTSService).sendText(chunk.trim())
-                  console.log('[RealtimeChat] ✅ 第一个chunk已发送到TTS')
+                  // 发送所有缓存的chunks（避免超时）
+                  if (allPendingText.trim()) {
+                    (ttsService as AliyunTTSService).sendText(allPendingText.trim())
+                    console.log('[RealtimeChat] ✅ 所有缓存的chunks已发送到TTS')
+                  }
                 } catch (sendError) {
-                  console.error('[RealtimeChat] 发送第一个chunk失败:', sendError)
+                  console.error('[RealtimeChat] 发送缓存的chunks失败:', sendError)
                 }
+                // 清空缓存
+                pendingChunksBeforeTTSReady = []
               } else {
                 console.warn('[RealtimeChat] TTS初始化后无法发送chunk:', {
                   ttsService: !!ttsService,
@@ -531,12 +551,17 @@ const sendAIMessage = async () => {
             } catch (error) {
               console.error('[RealtimeChat] TTS初始化失败:', error)
               // 即使TTS初始化失败，也继续处理文本
+              ttsService = null
+              ttsInitialized = false
+              pendingChunksBeforeTTSReady = []
             }
-          } else {
+          } else if (!ttsService && ttsInitialized) {
+            // TTS正在初始化中，缓存chunk等待初始化完成
+            console.log('[RealtimeChat] TTS正在初始化中，缓存chunk:', chunk.substring(0, 50))
+            pendingChunksBeforeTTSReady.push(chunk)
+          } else if (ttsService) {
             // 如果TTS已初始化，实时合成语音
-            if (ttsService) {
-              synthesizeText(chunk)
-            }
+            synthesizeText(chunk)
           }
         }
       },

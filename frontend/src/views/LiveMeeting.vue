@@ -491,17 +491,19 @@ const handleAudioData = (data: Uint8Array) => {
 
 // 初始化语音合成
 const initTTS = async (): Promise<void> => {
-  // 如果已经有TTS服务正在运行，先停止之前的服务
+  // 如果已经有TTS服务正在运行，先停止之前的播放和合成，避免两段音频同时播放
   if (ttsService) {
-    console.log('[LiveMeeting] 检测到已有TTS服务，先清理旧服务')
+    console.log('[LiveMeeting] 检测到已有TTS服务，先停止之前的播放和合成')
     try {
-      ttsService.stopPlayback()
-      ttsService.stopSynthesis()
-      ttsService.close()
+      ttsService.stopPlayback() // 停止音频播放
+      ttsService.stopSynthesis() // 停止合成
+      ttsService.close() // 关闭连接
     } catch (error) {
       console.error('[LiveMeeting] 清理旧TTS服务失败:', error)
     }
     ttsService = null
+    pendingTextBuffer = '' // 清空待发送的文本缓冲区
+    isAISpeaking.value = false // 重置状态
   }
 
   console.log('[LiveMeeting] 开始初始化语音合成服务')
@@ -686,6 +688,8 @@ const triggerAISpeech = async () => {
 
   // 标记是否已经初始化TTS（延迟初始化，在收到第一个chunk时才初始化）
   let ttsInitialized = false
+  // 缓存TTS初始化完成前到达的chunks，避免丢失
+  let pendingChunksBeforeTTSReady: string[] = []
 
   const aiMessageId = `ai_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   let aiResponseText = ''
@@ -715,57 +719,44 @@ const triggerAISpeech = async () => {
         }
 
         // 延迟初始化TTS（在收到第一个chunk时才初始化）
-        // 注意：如果 ttsService 存在但已失败，需要先清理
-        if (ttsService) {
-          // 检查TTS服务是否仍然有效（通过检查WebSocket状态）
-          // 如果服务已失败，清理它
-          try {
-            // 尝试发送文本，如果失败说明服务已失效
-            synthesizeText(chunk)
-          } catch (error) {
-            console.warn('[LiveMeeting] TTS服务可能已失效，清理并重新初始化:', error)
-            if (ttsService) {
-              try {
-                ttsService.close()
-              } catch (e) {
-                // 忽略清理错误
-              }
-              ttsService = null
-              ttsInitialized = false // 重置标志，允许重新初始化
-            }
-          }
-        }
-
         if (!ttsInitialized && !ttsService) {
           console.log('[LiveMeeting] 收到第一个AI响应chunk，开始初始化TTS，chunk内容:', chunk.substring(0, 50))
           ttsInitialized = true
+          // 缓存第一个chunk，等TTS初始化完成后再发送
+          pendingChunksBeforeTTSReady.push(chunk)
+
           try {
             console.log('[LiveMeeting] 准备初始化TTS，chunk内容:', chunk.substring(0, 50))
             await initTTS()
             console.log('[LiveMeeting] TTS初始化完成，ttsService状态:', ttsService ? '存在' : '不存在')
 
-            // TTS初始化成功后，立即发送第一个chunk，避免连接空闲超时
-            if (ttsService && chunk.trim()) {
-              console.log('[LiveMeeting] TTS初始化成功，立即发送第一个chunk:', chunk.substring(0, 50))
+            // TTS初始化成功后，发送所有缓存的chunks（包括第一个chunk）
+            if (ttsService && pendingChunksBeforeTTSReady.length > 0) {
+              const allPendingText = pendingChunksBeforeTTSReady.join('')
+              console.log('[LiveMeeting] TTS初始化成功，发送所有缓存的chunks，总长度:', allPendingText.length)
               try {
-                (ttsService as AliyunTTSService).sendText(chunk.trim())
-                console.log('[LiveMeeting] ✅ 第一个chunk已发送到TTS')
+                // 先发送第一个chunk（避免超时），然后通过synthesizeText处理剩余的
+                if (allPendingText.trim()) {
+                  (ttsService as AliyunTTSService).sendText(allPendingText.trim())
+                  console.log('[LiveMeeting] ✅ 所有缓存的chunks已发送到TTS')
+                }
               } catch (sendError) {
-                console.error('[LiveMeeting] 发送第一个chunk失败:', sendError)
+                console.error('[LiveMeeting] 发送缓存的chunks失败:', sendError)
               }
-            } else {
-              console.warn('[LiveMeeting] TTS初始化后无法发送chunk:', {
-                ttsService: !!ttsService,
-                chunk: chunk.substring(0, 50),
-                chunkTrimmed: chunk.trim(),
-              })
+              // 清空缓存
+              pendingChunksBeforeTTSReady = []
             }
           } catch (error) {
             console.error('[LiveMeeting] TTS初始化失败:', error)
             // 即使TTS初始化失败，也继续处理文本
             ttsService = null // 确保清理失败的实例
             ttsInitialized = false // 允许下次重试
+            pendingChunksBeforeTTSReady = [] // 清空缓存
           }
+        } else if (!ttsService && ttsInitialized) {
+          // TTS正在初始化中，缓存chunk等待初始化完成
+          console.log('[LiveMeeting] TTS正在初始化中，缓存chunk:', chunk.substring(0, 50))
+          pendingChunksBeforeTTSReady.push(chunk)
         } else if (ttsService) {
           // 如果TTS已初始化，实时合成语音
           synthesizeText(chunk)

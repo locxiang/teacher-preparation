@@ -260,6 +260,21 @@ const initTTS = async () => {
     return
   }
 
+  // 如果已经有TTS服务正在运行，先停止之前的播放和合成，避免两段音频同时播放
+  if (ttsService) {
+    console.log('[AIChat] 检测到已有TTS服务，先停止之前的播放和合成')
+    try {
+      ttsService.stopPlayback() // 停止音频播放
+      ttsService.stopSynthesis() // 停止合成
+      ttsService.close() // 关闭连接
+    } catch (error) {
+      console.error('[AIChat] 清理旧TTS服务失败:', error)
+    }
+    ttsService = null
+    pendingTextBuffer = '' // 清空待发送的文本缓冲区
+    isPlayingVoice.value = false // 重置状态
+  }
+
   console.log('[AIChat] 开始初始化语音合成服务')
   try {
     // 获取Token
