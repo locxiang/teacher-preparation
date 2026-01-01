@@ -83,6 +83,16 @@
             </div>
             <div class="flex items-center space-x-3">
               <button
+                @click="handleDownloadSummary"
+                :disabled="!summaryData"
+                class="px-4 py-2 text-sm border border-gray-300 rounded text-gray-700 hover:bg-gray-50 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                <span>下载总结</span>
+              </button>
+              <button
                 @click="regenerateSummary"
                 :disabled="isRegenerating"
                 class="px-4 py-2 text-sm border border-gray-300 rounded text-gray-700 hover:bg-gray-50 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -487,7 +497,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick, watch, type ComponentPublicInstance } from 'vue'
 import { useRoute } from 'vue-router'
-import { getMeeting, completeMeeting, type Meeting } from '@/services/meeting'
+import { getMeeting, completeMeeting, downloadSummary, type Meeting } from '@/services/meeting'
 import mermaid from 'mermaid'
 
 interface SummaryData {
@@ -830,6 +840,16 @@ const downloadAudio = async (filename: string) => {
   } catch (error) {
     console.error('下载音频文件失败:', error)
     alert('下载音频文件失败，请稍后重试')
+  }
+}
+
+// 下载会议总结
+const handleDownloadSummary = async () => {
+  try {
+    await downloadSummary(meetingId.value)
+  } catch (error) {
+    console.error('下载会议总结失败:', error)
+    alert(error instanceof Error ? error.message : '下载会议总结失败，请稍后重试')
   }
 }
 

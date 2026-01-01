@@ -28,6 +28,8 @@ export interface Meeting {
   name: string
   description?: string
   subject?: string  // 学科：数学、语文等
+  grade?: string  // 年级：初一年级、初二年级、初三年级、高一年级、高二年级、高三年级等
+  lesson_type?: string  // 备课类型：新课、复习、专题等
   status: 'pending' | 'running' | 'stopped' | 'completed'
   task_id?: string  // 通义听悟任务ID（重要）
   stream_url?: string
@@ -116,6 +118,8 @@ export async function createMeeting(
   name: string,
   description?: string,
   subject?: string,
+  grade?: string,
+  lessonType?: string,
   teacherIds?: number[],
   hostTeacherId?: number
 ): Promise<Meeting> {
@@ -126,6 +130,8 @@ export async function createMeeting(
       name,
       description,
       subject,
+      grade,
+      lesson_type: lessonType,
       teacher_ids: teacherIds,
       host_teacher_id: hostTeacherId,
     }),
@@ -260,5 +266,54 @@ export function calculateDuration(meeting: Meeting): number {
   const start = new Date(meeting.created_at).getTime()
   const end = meeting.updated_at ? new Date(meeting.updated_at).getTime() : Date.now()
   return Math.floor((end - start) / 1000 / 60)
+}
+
+/**
+ * 下载会议总结Word文档
+ */
+export async function downloadSummary(meetingId: string): Promise<void> {
+  const token = localStorage.getItem('access_token')
+  const headers: HeadersInit = {}
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
+  const response = await fetch(`${API_BASE_URL}/api/meetings/${meetingId}/summary/download`, {
+    method: 'GET',
+    headers: headers,
+  })
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}))
+    throw new Error(data.message || '下载会议总结失败')
+  }
+
+  // 获取文件名（从响应头或使用默认名称）
+  const contentDisposition = response.headers.get('Content-Disposition')
+  let filename = `会议总结_${meetingId}.docx`
+  if (contentDisposition) {
+    const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/)
+    if (filenameMatch && filenameMatch[1]) {
+      filename = filenameMatch[1].replace(/['"]/g, '')
+      // 处理URL编码的文件名
+      try {
+        filename = decodeURIComponent(filename)
+      } catch {
+        // 如果解码失败，使用原始文件名
+      }
+    }
+  }
+
+  // 下载文件
+  const blob = await response.blob()
+  const url = window.URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  window.URL.revokeObjectURL(url)
+  document.body.removeChild(a)
 }
 

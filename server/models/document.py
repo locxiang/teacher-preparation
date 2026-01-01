@@ -18,16 +18,22 @@ class Document(db.Model):
     file_type = db.Column(db.String(50), nullable=False)  # 文件类型：pdf, docx, pptx, txt等
     mime_type = db.Column(db.String(100), nullable=True)  # MIME类型
     status = db.Column(db.String(20), default='uploaded', nullable=False)  # uploaded, processing, completed, failed
-    parsed_content = db.Column(db.Text, nullable=True)  # 解析后的文本内容
+    parsed_content = db.Column(db.Text, nullable=True)  # 解析后的文本内容（原始文档内容）
+    summary = db.Column(db.Text, nullable=True)  # AI提取的摘要和关键点
     parse_progress = db.Column(db.Integer, default=0, nullable=False)  # 解析进度 0-100
     error_message = db.Column(db.Text, nullable=True)  # 错误信息
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     
-    def to_dict(self):
-        """转换为字典"""
-        return {
+    def to_dict(self, include_content: bool = False):
+        """
+        转换为字典
+        
+        Args:
+            include_content: 是否包含解析后的完整内容（可能很大）
+        """
+        data = {
             'id': self.id,
             'meeting_id': self.meeting_id,
             'filename': self.filename,
@@ -43,7 +49,15 @@ class Document(db.Model):
             'user_id': self.user_id,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            # 摘要字段总是返回（即使为空），方便前端使用
+            'summary': self.summary,
         }
+        
+        # 如果请求包含完整内容，返回解析后的原始内容
+        if include_content:
+            data['parsed_content'] = self.parsed_content
+        
+        return data
     
     def __repr__(self):
         return f'<Document {self.original_filename}>'

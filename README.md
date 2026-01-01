@@ -126,16 +126,28 @@ teacher-preparation/
 │   │   ├── services/     # API 服务
 │   │   └── routes.ts     # 路由配置
 │   └── vite.config.js    # Vite 配置（已启用 HTTPS）
+│
 ├── server/                # 后端项目
 │   ├── app.py            # Flask 应用入口
 │   ├── config.py         # 配置管理
-│   ├── models/           # 数据模型
-│   ├── routes/           # API 路由
-│   ├── services/         # 业务逻辑
-│   └── requirements.txt  # Python 依赖
+│   ├── database.py       # 数据库配置
+│   ├── requirements.txt  # Python 依赖
+│   ├── docs/             # 文档目录
+│   ├── migrations/       # 数据库迁移文件
+│   ├── models/           # 数据模型（ORM）
+│   ├── routes/           # API 路由（Blueprint）
+│   ├── services/         # 业务逻辑服务层
+│   ├── utils/            # 工具函数
+│   ├── scripts/          # 脚本文件
+│   │   └── legacy/       # 旧脚本备份
+│   ├── tests/            # 测试文件
+│   └── uploads/          # 上传文件存储
+│
 ├── docker-compose.yml    # Docker 编排配置
 └── README.md            # 项目说明
 ```
+
+详细的后端目录结构说明请参考：`server/docs/DIRECTORY_STRUCTURE.md`
 
 ## 主要 API 端点
 
@@ -148,12 +160,51 @@ teacher-preparation/
 - `POST /api/ai-chat` - AI 对话
 - `GET /api/swagger.json` - API 文档（Swagger）
 
+## 数据库迁移
+
+本项目使用 **Flask-Migrate** 进行数据库迁移管理，替代了之前的手动迁移脚本方式。
+
+### 首次使用
+
+```bash
+cd server
+
+# 初始化迁移目录（仅首次需要）
+flask db init
+
+# 创建初始迁移（如果数据库已存在表结构）
+flask db migrate -m "初始数据库结构"
+
+# 应用迁移（迁移会在应用启动时自动执行）
+flask db upgrade
+```
+
+### 创建新迁移
+
+当模型发生变化时：
+
+```bash
+# 创建迁移文件
+flask db migrate -m "迁移描述"
+
+# 应用迁移
+flask db upgrade
+```
+
+### 迁移管理
+
+- 迁移会在应用启动时**自动执行**
+- 所有迁移文件位于 `server/migrations/versions/` 目录
+- 迁移按时间顺序执行，确保数据库结构一致性
+- 详细文档请参考：`server/migrations/MIGRATION_GUIDE.md`
+
 ## 注意事项
 
 1. **HTTPS 配置**：前端开发服务器已配置 HTTPS，首次访问浏览器可能提示证书警告，这是正常的本地开发证书
-2. **数据库初始化**：首次启动会自动创建数据库表结构
+2. **数据库初始化**：首次启动会自动创建数据库表结构，迁移会在启动时自动执行
 3. **阿里云 SDK**：需要手动下载 `nls-1.1.0-py3-none-any.whl` 文件并放在项目根目录
 4. **端口冲突**：如果端口被占用，可在 `docker-compose.yml` 中修改端口映射
+5. **数据库迁移**：使用 Flask-Migrate 管理数据库变更，不再需要手动执行 `add_*.py` 脚本
 
 ## 许可证
 

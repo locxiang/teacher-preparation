@@ -32,6 +32,9 @@ if [ ! -f ".env" ]; then
     fi
 fi
 
+# 切换到项目根目录
+cd "$(dirname "$0")/.."
+
 # 启动服务
 echo "启动Flask服务..."
 python3 app.py

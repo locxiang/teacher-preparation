@@ -1,0 +1,112 @@
+"""
+示例迁移文件
+
+这是一个示例文件，展示如何创建 Flask-Migrate 迁移文件。
+实际迁移文件应该通过 `flask db migrate` 命令自动生成。
+
+如果需要手动创建迁移文件，可以参考此示例。
+"""
+from alembic import op
+import sqlalchemy as sa
+
+# revision identifiers, used by Alembic.
+# revision: 当前迁移的唯一标识符（通常是随机字符串）
+revision = 'example_revision_id'
+# down_revision: 上一个迁移的 revision ID，形成迁移链
+down_revision = 'previous_revision_id'  # 如果是第一个迁移，设为 None
+branch_labels = None
+depends_on = None
+
+
+def upgrade():
+    """
+    执行迁移（升级）
+    当运行 flask db upgrade 时执行此函数
+    """
+    # 示例1: 添加字段
+    # op.add_column('meetings', sa.Column('subject', sa.String(length=50), nullable=True))
+    
+    # 示例2: 添加多个字段
+    # op.add_column('meetings', sa.Column('grade', sa.String(length=50), nullable=True))
+    # op.add_column('meetings', sa.Column('lesson_type', sa.String(length=50), nullable=True))
+    
+    # 示例3: 修改字段类型
+    # op.alter_column('meetings', 'status',
+    #                 existing_type=sa.String(length=20),
+    #                 type_=sa.String(length=50),
+    #                 nullable=False)
+    
+    # 示例4: 删除字段
+    # op.drop_column('meetings', 'old_field')
+    
+    # 示例5: 创建索引
+    # op.create_index('ix_meetings_user_id', 'meetings', ['user_id'])
+    
+    # 示例6: 删除索引
+    # op.drop_index('ix_meetings_user_id', table_name='meetings')
+    
+    # 示例7: 创建表
+    # op.create_table('new_table',
+    #                 sa.Column('id', sa.Integer(), nullable=False),
+    #                 sa.Column('name', sa.String(length=100), nullable=False),
+    #                 sa.PrimaryKeyConstraint('id')
+    #                 )
+    
+    # 示例8: 删除表
+    # op.drop_table('old_table')
+    
+    # 示例9: 重命名表
+    # op.rename_table('old_name', 'new_name')
+    
+    # 示例10: 重命名字段
+    # op.alter_column('meetings', 'old_name', new_column_name='new_name')
+    
+    pass
+
+
+def downgrade():
+    """
+    回滚迁移（降级）
+    当运行 flask db downgrade 时执行此函数
+    应该执行与 upgrade() 相反的操作
+    """
+    # 示例1: 删除字段
+    # op.drop_column('meetings', 'subject')
+    
+    # 示例2: 删除多个字段
+    # op.drop_column('meetings', 'lesson_type')
+    # op.drop_column('meetings', 'grade')
+    
+    # 示例3: 恢复字段类型
+    # op.alter_column('meetings', 'status',
+    #                 existing_type=sa.String(length=50),
+    #                 type_=sa.String(length=20),
+    #                 nullable=False)
+    
+    # 示例4: 添加字段
+    # op.add_column('meetings', sa.Column('old_field', sa.String(length=50), nullable=True))
+    
+    # 示例5: 删除索引
+    # op.drop_index('ix_meetings_user_id', table_name='meetings')
+    
+    # 示例6: 创建索引
+    # op.create_index('ix_meetings_user_id', 'meetings', ['user_id'])
+    
+    # 示例7: 删除表
+    # op.drop_table('new_table')
+    
+    # 示例8: 创建表
+    # op.create_table('old_table',
+    #                 sa.Column('id', sa.Integer(), nullable=False),
+    #                 sa.Column('name', sa.String(length=100), nullable=False),
+    #                 sa.PrimaryKeyConstraint('id')
+    #                 )
+    
+    # 示例9: 重命名表
+    # op.rename_table('new_name', 'old_name')
+    
+    # 示例10: 重命名字段
+    # op.alter_column('meetings', 'new_name', new_column_name='old_name')
+    
+    pass
+

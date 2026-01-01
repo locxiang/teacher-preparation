@@ -2,10 +2,12 @@
 数据库配置
 """
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from config import Config
 import os
 
 db = SQLAlchemy()
+migrate = Migrate()
 
 
 def init_db(app):
@@ -21,17 +23,14 @@ def init_db(app):
     # 初始化SQLAlchemy
     db.init_app(app)
     
-    # 导入所有模型（确保 SQLAlchemy 知道所有表结构）
-    from models import User, Meeting, Transcript, Teacher, Document
+    # 初始化Flask-Migrate
+    migrate.init_app(app, db, directory='migrations')
     
-    # 创建表
-    with app.app_context():
-        try:
-            db.create_all()
-            app.logger.info("数据库初始化完成，所有表已创建")
-        except Exception as e:
-            app.logger.error(f"数据库初始化失败: {str(e)}")
-            raise
+    # 导入所有模型（确保 SQLAlchemy 知道所有表结构）
+    from models import User, Meeting, Transcript, Teacher, Document, MeetingTeacher
+    
+    # 注意：不再使用 db.create_all()，而是使用 Flask-Migrate 进行迁移管理
+    # 迁移会在应用启动时自动执行（见 app.py）
 
 
 def get_db():

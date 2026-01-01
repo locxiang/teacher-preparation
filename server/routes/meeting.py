@@ -1,13 +1,14 @@
 """
 会议路由
 """
-from flask import Blueprint, request, jsonify, Response
+from flask import Blueprint, request, jsonify, Response, send_file
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from services.meeting_service import MeetingService
 from services.tytingwu_service import TyingWuService
 import logging
 import json
 import time
+from datetime import datetime
 
 meeting_bp = Blueprint('meeting', __name__)
 meeting_service = MeetingService()
@@ -33,12 +34,16 @@ def create_meeting():
         teacher_ids = data.get('teacher_ids', [])  # 获取选择的教师ID列表
         host_teacher_id = data.get('host_teacher_id')  # 获取主持人教师ID
         subject = data.get('subject')  # 获取学科
+        grade = data.get('grade')  # 获取年级
+        lesson_type = data.get('lesson_type')  # 获取备课类型
         
         meeting = meeting_service.create_meeting(
             meeting_name=meeting_name,
             user_id=user_id,
             description=data.get('description'),
             subject=subject,
+            grade=grade,
+            lesson_type=lesson_type,
             teacher_ids=teacher_ids,
             host_teacher_id=host_teacher_id
         )
@@ -421,6 +426,53 @@ def delete_meeting(meeting_id):
         }), 404
     
     except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
+
+@meeting_bp.route('/<meeting_id>/summary/download', methods=['GET'])
+@jwt_required()
+def download_summary(meeting_id):
+    """下载会议总结Word文档"""
+    try:
+        user_id = get_jwt_identity()
+        
+        # 验证会议权限
+        meeting = meeting_service.get_meeting(meeting_id, user_id=user_id)
+        if not meeting:
+            return jsonify({
+                'success': False,
+                'message': '会议不存在或无权限'
+            }), 404
+        
+        # 生成Word文档
+        doc_bytes = meeting_service.generate_summary_document(meeting_id, user_id=user_id)
+        
+        # 生成文件名
+        meeting_name = meeting.get('name', '会议总结')
+        # 清理文件名中的特殊字符
+        safe_name = ''.join(c for c in meeting_name if c.isalnum() or c in (' ', '-', '_'))[:50]
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"{safe_name}_{timestamp}.docx"
+        
+        return send_file(
+            doc_bytes,
+            mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            as_attachment=True,
+            download_name=filename
+        )
+    
+    except ValueError as e:
+        logger.error(f"下载会议总结失败: {str(e)}", exc_info=True)
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 400
+    
+    except Exception as e:
+        logger.error(f"下载会议总结失败: {str(e)}", exc_info=True)
         return jsonify({
             'success': False,
             'message': str(e)

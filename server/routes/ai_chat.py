@@ -22,6 +22,32 @@ ai_chat_bp = Blueprint('ai_chat', __name__)
 logger = logging.getLogger(__name__)
 
 
+def _extract_text_from_response(response_or_chunk):
+    """从 DashScope 响应中提取文本内容"""
+    if hasattr(response_or_chunk, 'output'):
+        output = response_or_chunk.output
+        if hasattr(output, 'text'):
+            return output.text
+        if isinstance(output, dict):
+            return output.get('text', '')
+        return str(output) if output else None
+    if isinstance(response_or_chunk, dict):
+        return response_or_chunk.get('output', {}).get('text', '')
+    return None
+
+
+def _send_sse_chunk(content):
+    """发送 SSE 数据块"""
+    return f"data: {json.dumps({'content': content}, ensure_ascii=False)}\n\n"
+
+
+def _stream_text_as_words(text):
+    """将文本按词分割并逐个发送（用于非流式响应的模拟流式效果）"""
+    import re
+    for word in re.findall(r'\S+|\s+', text):
+        yield _send_sse_chunk(word)
+
+
 @ai_chat_bp.route('/stream', methods=['POST'])
 @jwt_required()
 def stream_ai_chat():
@@ -75,15 +101,16 @@ def stream_ai_chat():
                 'message': 'DASHSCOPE_APP_ID 未配置，请在环境变量或 .env 文件中设置'
             }), 500
         
-        # 构建提示词
+        # 构建提示词（build_prompt内部会打印详细日志）
         prompt = build_prompt(meeting_id, chat_history_str)
-        logger.info(f"构建的提示词长度: {len(prompt)}, 前100字符: {prompt[:100]}...")
+        logger.info(f"[AI对话] 提示词构建完成，总长度: {len(prompt)} 字符")
         
         def generate():
             """生成SSE流"""
+            import time
             try:
-                logger.info("开始调用DashScope API进行流式响应")
-                start_time = __import__('time').time()
+                logger.info(f"[DashScope API] 开始调用，prompt长度: {len(prompt)} 字符")
+                start_time = time.time()
                 
                 # 尝试流式调用
                 try:
@@ -91,101 +118,42 @@ def stream_ai_chat():
                         api_key=Config.DASHSCOPE_API_KEY,
                         app_id=Config.DASHSCOPE_APP_ID,
                         prompt=prompt,
-                        stream=True  # 启用流式响应
+                        stream=True
                     )
-                    logger.info(f"DashScope API调用成功，响应类型: {type(response)}")
                     
-                    # 检查是否是流式响应（可迭代对象）
+                    # 处理流式响应
                     if hasattr(response, '__iter__') and not isinstance(response, (str, bytes)):
-                        # 流式响应处理
-                        # DashScope SDK 的流式响应返回的是累积的完整文本，需要提取增量
                         accumulated_text = ""
-                        chunk_count = 0
-                        first_chunk_time = None
-                        
-                        logger.info("开始处理流式响应chunks")
                         for chunk in response:
-                            chunk_count += 1
-                            if first_chunk_time is None:
-                                first_chunk_time = __import__('time').time()
-                                elapsed = first_chunk_time - start_time
-                                logger.info(f"收到第一个chunk，耗时: {elapsed:.2f}秒")
-                            
-                            text = None
-                            
-                            # 尝试多种方式提取文本
-                            if hasattr(chunk, 'output') and hasattr(chunk.output, 'text'):
-                                text = chunk.output.text
-                            elif hasattr(chunk, 'output') and isinstance(chunk.output, dict):
-                                text = chunk.output.get('text', '')
-                            elif isinstance(chunk, dict):
-                                output = chunk.get('output', {})
-                                if isinstance(output, dict):
-                                    text = output.get('text', '')
-                                else:
-                                    text = str(output) if output else None
-                            
+                            text = _extract_text_from_response(chunk)
                             if text:
-                                # 检查是否是累积文本（DashScope SDK 通常返回累积的完整文本）
+                                # DashScope 返回累积文本，提取增量部分
                                 if text.startswith(accumulated_text):
-                                    # 提取增量部分
-                                    incremental_text = text[len(accumulated_text):]
+                                    incremental = text[len(accumulated_text):]
                                     accumulated_text = text
-                                    
-                                    if incremental_text:
-                                        chunk_data = {
-                                            "content": incremental_text
-                                        }
-                                        logger.debug(f"发送chunk #{chunk_count}, 增量长度: {len(incremental_text)}, 内容: {incremental_text[:50]}...")
-                                        yield f"data: {json.dumps(chunk_data, ensure_ascii=False)}\n\n"
+                                    if incremental:
+                                        yield _send_sse_chunk(incremental)
                                 else:
-                                    # 如果不是累积文本，直接发送（可能是增量格式）
                                     accumulated_text = text
-                                    chunk_data = {
-                                        "content": text
-                                    }
-                                    logger.debug(f"发送chunk #{chunk_count}, 文本长度: {len(text)}, 内容: {text[:50]}...")
-                                    yield f"data: {json.dumps(chunk_data, ensure_ascii=False)}\n\n"
+                                    yield _send_sse_chunk(text)
                         
-                        total_time = __import__('time').time() - start_time
-                        logger.info(f"流式响应完成，共处理 {chunk_count} 个chunks，总耗时: {total_time:.2f}秒，累计文本长度: {len(accumulated_text)}")
+                        elapsed = time.time() - start_time
+                        logger.info(f"[DashScope API] 流式响应完成，耗时: {elapsed:.2f}秒")
                     
                     # 非流式响应（单个响应对象）
-                    elif response.status_code == HTTPStatus.OK:
-                        text = None
-                        if hasattr(response, 'output') and hasattr(response.output, 'text'):
-                            text = response.output.text
-                        elif hasattr(response, 'output') and isinstance(response.output, dict):
-                            text = response.output.get('text', '')
-                        
-                        if text:
-                            # 逐词发送以模拟流式效果
-                            import re
-                            words = re.findall(r'\S+|\s+', text)
-                            for word in words:
-                                chunk_data = {
-                                    "content": word
-                                }
-                                yield f"data: {json.dumps(chunk_data, ensure_ascii=False)}\n\n"
+                    elif hasattr(response, 'status_code'):
+                        if response.status_code == HTTPStatus.OK:
+                            text = _extract_text_from_response(response)
+                            if text:
+                                yield from _stream_text_as_words(text)
                         else:
-                            # 如果无法提取文本，尝试直接使用响应对象
-                            response_text = str(response.output) if hasattr(response, 'output') else str(response)
-                            import re
-                            words = re.findall(r'\S+|\s+', response_text)
-                            for word in words:
-                                chunk_data = {
-                                    "content": word
-                                }
-                                yield f"data: {json.dumps(chunk_data, ensure_ascii=False)}\n\n"
-                    else:
-                        # 流式调用失败，尝试非流式调用
-                        raise Exception(f"流式调用返回错误状态码: {response.status_code}")
-                        
-                except Exception as stream_error:
-                    # 如果流式调用失败，回退到非流式调用
-                    logger.error(f"流式调用失败: {str(stream_error)}，错误类型: {type(stream_error).__name__}", exc_info=True)
-                    logger.warning("尝试非流式调用作为回退方案")
+                            error_msg = f"API调用失败: {getattr(response, 'message', '未知错误')} (状态码: {response.status_code})"
+                            logger.error(error_msg)
+                            yield _send_sse_chunk(error_msg)
                     
+                except Exception as stream_error:
+                    # 流式调用失败，回退到非流式调用
+                    logger.warning(f"流式调用失败，回退到非流式: {stream_error}")
                     response = Application.call(
                         api_key=Config.DASHSCOPE_API_KEY,
                         app_id=Config.DASHSCOPE_APP_ID,
@@ -193,40 +161,19 @@ def stream_ai_chat():
                     )
                     
                     if response.status_code == HTTPStatus.OK:
-                        text = None
-                        if hasattr(response, 'output') and hasattr(response.output, 'text'):
-                            text = response.output.text
-                        elif hasattr(response, 'output') and isinstance(response.output, dict):
-                            text = response.output.get('text', '')
-                        else:
-                            text = str(response.output) if hasattr(response, 'output') else str(response)
-                        
+                        text = _extract_text_from_response(response) or str(response.output if hasattr(response, 'output') else response)
                         if text:
-                            # 逐词发送以模拟流式效果
-                            import re
-                            words = re.findall(r'\S+|\s+', text)
-                            for word in words:
-                                chunk_data = {
-                                    "content": word
-                                }
-                                yield f"data: {json.dumps(chunk_data, ensure_ascii=False)}\n\n"
+                            yield from _stream_text_as_words(text)
                     else:
-                        error_msg = f"API调用失败: {response.message if hasattr(response, 'message') else '未知错误'} (状态码: {response.status_code})"
+                        error_msg = f"API调用失败: {getattr(response, 'message', '未知错误')} (状态码: {response.status_code})"
                         logger.error(error_msg)
-                        error_data = {
-                            "error": error_msg
-                        }
-                        yield f"data: {json.dumps(error_data, ensure_ascii=False)}\n\n"
+                        yield _send_sse_chunk(error_msg)
                 
-                # 发送结束标记
                 yield "data: [DONE]\n\n"
                 
             except Exception as e:
                 logger.error(f"生成AI回答时出错: {str(e)}", exc_info=True)
-                error_data = {
-                    "error": f"AI对话失败: {str(e)}"
-                }
-                yield f"data: {json.dumps(error_data, ensure_ascii=False)}\n\n"
+                yield _send_sse_chunk(f"AI对话失败: {str(e)}")
                 yield "data: [DONE]\n\n"
         
         return Response(
@@ -248,20 +195,111 @@ def stream_ai_chat():
 
 
 def build_prompt(meeting_id: str, chat_history: str) -> str:
-    """构建提示词"""
+    """
+    构建提示词
+    
+    会在日志中打印完整的提示词内容，方便分析和调试
+    """
+    from models.meeting import Meeting
+    from models.document import Document
+    from services.document_service import DocumentService
+    
+    logger.info(f"[AI提示词构建] 开始构建提示词 - meeting_id: {meeting_id}, chat_history长度: {len(chat_history) if chat_history else 0}")
+    
     prompt_parts = []
+    documents_count = 0
     
-    if meeting_id:
-        prompt_parts.append(f"会议ID: {meeting_id}")
+    # 获取会议信息
+    meeting = Meeting.query.get(meeting_id)
+    if meeting:
+        # 构建教师角色和教学范围限定
+        role_parts = []
+        role_parts.append("你是一位专业的教学备课助手")
+        
+        if meeting.subject:
+            role_parts.append(f"学科：{meeting.subject}")
+        if meeting.grade:
+            role_parts.append(f"年级：{meeting.grade}")
+        if meeting.lesson_type:
+            role_parts.append(f"备课类型：{meeting.lesson_type}")
+        if meeting.description:
+            role_parts.append(f"教学主题：{meeting.description}")
+        
+        if role_parts:
+            prompt_parts.append("【教学范围限定】\n" + "\n".join(role_parts))
+        
+        # 获取已解析的备课资料（docx）
+        documents = Document.query.filter_by(
+            meeting_id=meeting_id,
+            file_type='docx',
+            status='completed'  # 只使用已解析完成的文档
+        ).all()
+        
+        documents_count = len(documents)
+        logger.info(f"[AI提示词构建] 找到 {documents_count} 个已解析完成的文档")
+        
+        if documents:
+            doc_summaries = []
+            
+            for doc in documents:
+                # 优先使用单独的 summary 字段（这是从备课资料中提取的核心信息点）
+                if doc.summary:
+                    doc_summaries.append(f"文档《{doc.original_filename}》的核心信息点：\n{doc.summary}")
+                elif doc.parsed_content:
+                    # 如果没有 summary 字段，使用前500字作为摘要（兼容旧数据）
+                    summary_text = doc.parsed_content[:500] + "..." if len(doc.parsed_content) > 500 else doc.parsed_content
+                    doc_summaries.append(f"文档《{doc.original_filename}》的内容摘要：\n{summary_text}")
+            
+            if doc_summaries:
+                prompt_parts.append("【备课资料核心信息点】\n" + "\n\n".join(doc_summaries))
+                prompt_parts.append("说明：以上是从备课资料中提取的核心信息点，请充分理解这些信息，并在回答时结合这些核心点提供专业的备课建议。")
     
+    # 添加会议讨论记录
     if chat_history:
-        prompt_parts.append(f"聊天记录:\n{chat_history}")
+        prompt_parts.append("【会议讨论记录】\n" + chat_history)
     
+    # 构建最终提示词
     if not prompt_parts:
         return "请为我总结一下会议内容。"
     
+    # 添加指导性提示
+    instruction = """请根据以上信息，特别是最后用户的问答给出信息。
+
+【重要提示】
+1. **充分理解备课资料核心信息点**：这些是从备课资料中提取的关键信息，请深入理解并灵活运用
+2. **结合教学范围限定**：在回答时要充分考虑学科、年级、备课类型等限制条件
+3. **结合会议讨论内容**：根据当前的讨论记录，提供针对性的建议和回应
+4. **提供专业建议**：基于备课资料的核心点和讨论内容，提供：
+   - 教学重点和难点的分析
+   - 教学方法和策略的建议
+   - 与备课资料核心点的结合应用
+   - 针对讨论中提出的问题的专业解答
+
+请用专业、清晰、有针对性的语言回答，确保建议与备课资料的核心信息点紧密结合。"""
+    
     prompt = "\n\n".join(prompt_parts)
-    prompt += "\n\n请根据以上信息，为我提供智能分析和建议。"
+    prompt += "\n\n" + instruction
+    
+    # 打印详细的提示词，方便分析和调试
+    logger.info("=" * 100)
+    logger.info("[AI提示词构建] ========== 完整提示词内容 ==========")
+    logger.info("=" * 100)
+    logger.info(f"[AI提示词构建] 会议ID: {meeting_id}")
+    logger.info(f"[AI提示词构建] 提示词总长度: {len(prompt)} 字符")
+    logger.info(f"[AI提示词构建] 包含文档数量: {documents_count}")
+    logger.info("-" * 100)
+    logger.info("[AI提示词构建] 完整提示词内容（逐行显示）:")
+    logger.info("-" * 100)
+    # 分行打印，每行单独记录，便于阅读和分析
+    for i, line in enumerate(prompt.split('\n'), 1):
+        # 如果行太长，可以截断显示（但完整记录）
+        display_line = line[:200] + "..." if len(line) > 200 else line
+        logger.info(f"[AI提示词] [{i:4d}] {display_line}")
+        if len(line) > 200:
+            logger.debug(f"[AI提示词] [{i:4d}] (完整内容，长度: {len(line)}) {line}")
+    logger.info("-" * 100)
+    logger.info(f"[AI提示词构建] 提示词构建完成，共 {len(prompt.split(chr(10)))} 行")
+    logger.info("=" * 100)
     
     return prompt
 

@@ -13,6 +13,8 @@ class Meeting(db.Model):
     name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=True)
     subject = db.Column(db.String(50), nullable=True)  # 学科：数学、语文等
+    grade = db.Column(db.String(50), nullable=True)  # 年级：初一年级、初二年级等
+    lesson_type = db.Column(db.String(50), nullable=True)  # 备课类型：新课、复习、专题等
     status = db.Column(db.String(20), default='running', nullable=False, index=True)  # running, stopped, completed
     task_id = db.Column(db.String(100), nullable=True)  # 通义听悟任务ID
     stream_url = db.Column(db.String(500), nullable=True)  # 推流URL
@@ -31,6 +33,8 @@ class Meeting(db.Model):
             'name': self.name,
             'description': self.description,
             'subject': self.subject,
+            'grade': self.grade,
+            'lesson_type': self.lesson_type,
             'status': self.status,
             'task_id': self.task_id,
             'stream_url': self.stream_url,

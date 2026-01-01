@@ -2,12 +2,23 @@
 会议服务
 """
 import uuid
+import os
+import io
 from datetime import datetime
 from typing import Dict, Optional, List
 from database import db
 from models.meeting import Meeting
 from models.transcript import Transcript
 from services.tytingwu_service import TyingWuService
+
+# 尝试导入docx库
+try:
+    from docx import Document as DocxDocument
+    from docx.shared import Pt
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    DOCX_AVAILABLE = True
+except ImportError:
+    DOCX_AVAILABLE = False
 
 
 class MeetingService:
@@ -16,7 +27,7 @@ class MeetingService:
     def __init__(self):
         self.tytingwu_service = TyingWuService()
     
-    def create_meeting(self, meeting_name: str, user_id: int, description: Optional[str] = None, subject: Optional[str] = None, teacher_ids: Optional[List[int]] = None, host_teacher_id: Optional[int] = None, task_id: Optional[str] = None, stream_url: Optional[str] = None) -> Dict:
+    def create_meeting(self, meeting_name: str, user_id: int, description: Optional[str] = None, subject: Optional[str] = None, grade: Optional[str] = None, lesson_type: Optional[str] = None, teacher_ids: Optional[List[int]] = None, host_teacher_id: Optional[int] = None, task_id: Optional[str] = None, stream_url: Optional[str] = None) -> Dict:
         """
         创建会议
         
@@ -24,6 +35,9 @@ class MeetingService:
             meeting_name: 会议名称
             user_id: 用户ID
             description: 会议描述
+            subject: 学科
+            grade: 年级
+            lesson_type: 备课类型（新课、复习、专题等）
             teacher_ids: 教师ID列表
             host_teacher_id: 主持人教师ID
             task_id: 任务ID（可选，如果提供则使用，否则不创建任务）
@@ -40,6 +54,8 @@ class MeetingService:
             name=meeting_name,
             description=description,
             subject=subject,
+            grade=grade,
+            lesson_type=lesson_type,
             status='pending',  # 初始状态为pending，等待任务创建
             task_id=task_id,
             stream_url=stream_url,
@@ -595,4 +611,135 @@ class MeetingService:
         db.session.commit()
         
         return meeting.to_dict(include_transcripts=True)
+    
+    def generate_summary_document(self, meeting_id: str, user_id: Optional[int] = None) -> io.BytesIO:
+        """
+        生成会议总结Word文档
+        
+        Args:
+            meeting_id: 会议ID
+            user_id: 用户ID（用于权限检查）
+        
+        Returns:
+            Word文档的字节流
+        """
+        if not DOCX_AVAILABLE:
+            raise ValueError("python-docx 未安装，无法生成Word文档")
+        
+        # 获取会议信息
+        meeting = self.get_meeting(meeting_id, user_id=user_id)
+        if not meeting:
+            raise ValueError(f"会议不存在: {meeting_id}")
+        
+        # 获取最新转写记录和摘要
+        transcript_record = Transcript.query.filter_by(meeting_id=meeting_id).order_by(
+            Transcript.created_at.desc()
+        ).first()
+        
+        if not transcript_record or not transcript_record.summary_dict:
+            raise ValueError("会议总结不存在，请先生成会议总结")
+        
+        summary_data = transcript_record.summary_dict
+        
+        # 创建Word文档
+        doc = DocxDocument()
+        
+        # 设置文档样式
+        style = doc.styles['Normal']
+        font = style.font
+        font.name = '微软雅黑'
+        font.size = Pt(11)
+        
+        # 标题
+        title = doc.add_heading(meeting.get('name', '会议总结'), 0)
+        title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
+        # 会议基本信息
+        doc.add_paragraph().add_run('会议基本信息').bold = True
+        info_para = doc.add_paragraph()
+        info_items = []
+        if meeting.get('subject'):
+            info_items.append(f"学科：{meeting['subject']}")
+        if meeting.get('grade'):
+            info_items.append(f"年级：{meeting['grade']}")
+        if meeting.get('lesson_type'):
+            info_items.append(f"备课类型：{meeting['lesson_type']}")
+        if meeting.get('created_at'):
+            info_items.append(f"创建时间：{meeting['created_at']}")
+        info_para.add_run(' | '.join(info_items) if info_items else '无')
+        doc.add_paragraph()  # 空行
+        
+        # 全文摘要
+        if summary_data.get('paragraph_summary') or summary_data.get('summary'):
+            doc.add_paragraph().add_run('一、全文摘要').bold = True
+            summary_text = summary_data.get('paragraph_summary') or summary_data.get('summary', '')
+            doc.add_paragraph(summary_text)
+            doc.add_paragraph()  # 空行
+        
+        # 发言总结
+        if summary_data.get('conversational_summary') and len(summary_data['conversational_summary']) > 0:
+            doc.add_paragraph().add_run('二、发言总结').bold = True
+            for idx, speaker in enumerate(summary_data['conversational_summary'], 1):
+                speaker_para = doc.add_paragraph()
+                speaker_name = speaker.get('SpeakerName') or speaker.get('SpeakerId') or f'发言人{idx}'
+                speaker_para.add_run(f"{idx}. {speaker_name}").bold = True
+                if speaker.get('Summary'):
+                    doc.add_paragraph(speaker['Summary'])
+            doc.add_paragraph()  # 空行
+        
+        # 问答回顾
+        if summary_data.get('questions_answering_summary') and len(summary_data['questions_answering_summary']) > 0:
+            doc.add_paragraph().add_run('三、问答回顾').bold = True
+            for idx, qa in enumerate(summary_data['questions_answering_summary'], 1):
+                qa_para = doc.add_paragraph()
+                qa_para.add_run(f"{idx}. 问题：").bold = True
+                if qa.get('Question'):
+                    doc.add_paragraph(qa['Question'])
+                qa_para = doc.add_paragraph()
+                qa_para.add_run("   回答：").bold = True
+                if qa.get('Answer'):
+                    doc.add_paragraph(qa['Answer'])
+            doc.add_paragraph()  # 空行
+        
+        # 要点提炼
+        if summary_data.get('meeting_assistance'):
+            assistance = summary_data['meeting_assistance']
+            doc.add_paragraph().add_run('四、要点提炼').bold = True
+            
+            # 关键词
+            if assistance.get('keywords') and len(assistance['keywords']) > 0:
+                keywords_para = doc.add_paragraph()
+                keywords_para.add_run('关键词：').bold = True
+                keywords_para.add_run('、'.join(assistance['keywords']))
+            
+            # 关键句
+            if assistance.get('key_sentences') and len(assistance['key_sentences']) > 0:
+                doc.add_paragraph().add_run('关键句：').bold = True
+                for idx, sentence in enumerate(assistance['key_sentences'], 1):
+                    sentence_text = sentence.get('Text', '')
+                    if sentence_text:
+                        doc.add_paragraph(f"{idx}. {sentence_text}")
+            
+            # 待办事项
+            if assistance.get('actions') and len(assistance['actions']) > 0:
+                doc.add_paragraph().add_run('待办事项：').bold = True
+                for idx, action in enumerate(assistance['actions'], 1):
+                    action_text = action.get('Text', '')
+                    if action_text:
+                        doc.add_paragraph(f"{idx}. {action_text}")
+            
+            doc.add_paragraph()  # 空行
+        
+        # 思维导图（如果有）
+        if summary_data.get('mind_map_summary') and len(summary_data['mind_map_summary']) > 0:
+            doc.add_paragraph().add_run('五、思维导图').bold = True
+            doc.add_paragraph('（思维导图结构请参考系统界面）')
+            doc.add_paragraph()  # 空行
+        
+        # 将文档保存到内存
+        doc_bytes = io.BytesIO()
+        doc.save(doc_bytes)
+        doc_bytes.seek(0)
+        
+        return doc_bytes
 

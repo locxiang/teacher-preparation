@@ -83,8 +83,28 @@
                   <option>初一年级</option>
                   <option>初二年级</option>
                   <option>初三年级</option>
+                  <option>高一年级</option>
+                  <option>高二年级</option>
+                  <option>高三年级</option>
                 </select>
               </div>
+            </div>
+
+            <!-- Lesson Type -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1.5">备课类型</label>
+              <select
+                v-model="lessonType"
+                class="w-full px-3 py-2 text-sm rounded border border-gray-300 focus:ring-2 focus:ring-nanyu-500 focus:border-transparent outline-none transition-all bg-white"
+              >
+                <option value="">选择备课类型</option>
+                <option>新课</option>
+                <option>复习</option>
+                <option>专题</option>
+                <option>练习课</option>
+                <option>实验课</option>
+                <option>其他</option>
+              </select>
             </div>
 
             <!-- Topic -->
@@ -291,6 +311,7 @@ const meetingName = ref('')
 const subject = ref('')
 const grade = ref('')
 const topic = ref('')
+const lessonType = ref('')
 const selectedTeachers = ref<Teacher[]>([])
 const hostTeacherId = ref<number | null>(null)
 
@@ -389,6 +410,7 @@ const handleSubmit = async (e: Event) => {
       description: topic.value,
       subject: subject.value,
       grade: grade.value,
+      lesson_type: lessonType.value,
       teacherIds: teacherIds,
       hostTeacherId: hostTeacherId.value,
       teachers: selectedTeachers.value,

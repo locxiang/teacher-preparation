@@ -27,6 +27,10 @@ CORS(app)
 from database import init_db
 init_db(app)
 
+# 自动执行数据库迁移
+from utils.migration_manager import run_migrations
+run_migrations(app)
+
 # 初始化JWT
 jwt = JWTManager(app)
 app.config['JWT_SECRET_KEY'] = Config.SECRET_KEY
@@ -44,7 +48,7 @@ from routes.tytingwu import tytingwu_bp
 
 # 注册Swagger UI（如果可用）
 try:
-    from swagger import swaggerui_blueprint, get_swagger_spec
+    from utils.swagger import swaggerui_blueprint, get_swagger_spec
     if swaggerui_blueprint:
         app.register_blueprint(swaggerui_blueprint)
     
