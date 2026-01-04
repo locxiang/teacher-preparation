@@ -23,13 +23,9 @@ app.config['JSON_AS_ASCII'] = False
 # 启用CORS
 CORS(app)
 
-# 初始化数据库
+# 初始化数据库（自动创建表和字段）
 from database import init_db
 init_db(app)
-
-# 自动执行数据库迁移
-from utils.migration_manager import run_migrations
-run_migrations(app)
 
 # 初始化JWT
 jwt = JWTManager(app)
