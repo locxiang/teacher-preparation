@@ -403,7 +403,7 @@ class DocumentService:
             
             context_str = "\n".join(context_parts) if context_parts else ""
             
-            prompt = f"""你是一位专业的教学备课助手。请从以下备课资料中**提取**（不是生成或总结）核心信息点，这些信息将用于辅助备课会议讨论。
+            prompt = f"""你是一个AI助手，一个专门用于辅助备课教学的机器人。你不是老师，你只是一个AI助手，虽然你非常擅长备课教学，但你是一个机器人。请从以下备课资料中**提取**（不是生成或总结）核心信息点，这些信息将用于辅助备课会议讨论。
 
 【上下文信息】
 {context_str if context_str else "（未提供学科和年级信息）"}
