@@ -3,6 +3,8 @@
 """
 from datetime import datetime
 from database import db
+from sqlalchemy import Text
+from utils.datetime_utils import beijing_now
 
 
 class Document(db.Model):
@@ -18,13 +20,13 @@ class Document(db.Model):
     file_type = db.Column(db.String(50), nullable=False)  # 文件类型：pdf, docx, pptx, txt等
     mime_type = db.Column(db.String(100), nullable=True)  # MIME类型
     status = db.Column(db.String(20), default='uploaded', nullable=False)  # uploaded, processing, completed, failed
-    parsed_content = db.Column(db.Text, nullable=True)  # 解析后的文本内容（原始文档内容）
+    parsed_content = db.Column(Text(length=None), nullable=True)  # 解析后的文本内容（原始文档内容，使用LONGTEXT支持大内容）
     summary = db.Column(db.Text, nullable=True)  # AI提取的摘要和关键点
     parse_progress = db.Column(db.Integer, default=0, nullable=False)  # 解析进度 0-100
     error_message = db.Column(db.Text, nullable=True)  # 错误信息
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=beijing_now, nullable=False)
+    updated_at = db.Column(db.DateTime, default=beijing_now, onupdate=beijing_now, nullable=False)
     
     def to_dict(self, include_content: bool = False):
         """

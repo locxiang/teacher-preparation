@@ -72,8 +72,8 @@ app.register_blueprint(tts_bp, url_prefix='/api/tts')
 # 配置文件上传大小限制（50MB）
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024
 
-# 文档上传大小限制（20MB）
-DOCUMENT_MAX_SIZE = 20 * 1024 * 1024
+# 文档上传大小限制（5MB）
+DOCUMENT_MAX_SIZE = 5 * 1024 * 1024
 
 # 注册错误处理器
 from utils.error_handler import register_error_handlers

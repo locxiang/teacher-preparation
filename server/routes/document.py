@@ -12,6 +12,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# 文档上传大小限制（5MB）
+DOCUMENT_MAX_SIZE = 5 * 1024 * 1024
+
 document_bp = Blueprint('document', __name__)
 document_service = DocumentService()
 meeting_service = MeetingService()
@@ -53,6 +56,17 @@ def upload_document(meeting_id):
             return jsonify({
                 'success': False,
                 'message': '文件名为空'
+            }), 400
+        
+        # 检查文件大小（5MB限制）
+        file.seek(0, 2)  # 移动到文件末尾
+        file_size = file.tell()
+        file.seek(0)  # 重置到文件开头
+        if file_size > DOCUMENT_MAX_SIZE:
+            logger.warning(f"[文档上传] 文件过大 - filename: {file.filename}, size: {file_size} 字节, limit: {DOCUMENT_MAX_SIZE} 字节")
+            return jsonify({
+                'success': False,
+                'message': f'文件大小超过限制（最大5MB，当前文件: {round(file_size / (1024 * 1024), 2)}MB）'
             }), 400
         
         # 保存文件
@@ -130,7 +144,7 @@ def upload_document(meeting_id):
         logger.error(f"[文档上传] 文件过大 - meeting_id: {meeting_id}")
         return jsonify({
             'success': False,
-            'message': '文件大小超过限制（最大20MB）'
+            'message': '文件大小超过限制（最大5MB）'
         }), 413
     
     except Exception as e:

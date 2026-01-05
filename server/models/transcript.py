@@ -4,6 +4,7 @@
 from datetime import datetime
 from database import db
 import json
+from utils.datetime_utils import beijing_now
 
 
 class Transcript(db.Model):
@@ -16,8 +17,8 @@ class Transcript(db.Model):
     summary = db.Column(db.Text, nullable=True)  # 摘要（JSON格式）
     key_points = db.Column(db.Text, nullable=True)  # 要点（JSON格式）
     duration = db.Column(db.Float, nullable=True)  # 时长（秒）
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=beijing_now, nullable=False, index=True)
+    updated_at = db.Column(db.DateTime, default=beijing_now, onupdate=beijing_now, nullable=False)
     
     @property
     def summary_dict(self):

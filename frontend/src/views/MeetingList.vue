@@ -66,6 +66,8 @@
               <tr>
                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">会议名称</th>
                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">科目类型</th>
+                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">年级</th>
+                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">备课类型</th>
                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">老师数量</th>
                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">状态</th>
                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">创建时间</th>
@@ -98,6 +100,12 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {{ getSubjectText(meeting) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ getGradeText(meeting) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ getLessonTypeText(meeting) }}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {{ getTeacherCount(meeting) }}人
@@ -187,6 +195,16 @@ const getStatusText = (status: string): string => {
 // 获取科目类型（使用会议的学科字段）
 const getSubjectText = (meeting: Meeting): string => {
   return meeting.subject || '-'
+}
+
+// 获取年级
+const getGradeText = (meeting: Meeting): string => {
+  return meeting.grade || '-'
+}
+
+// 获取备课类型
+const getLessonTypeText = (meeting: Meeting): string => {
+  return meeting.lesson_type || '-'
 }
 
 // 获取老师数量

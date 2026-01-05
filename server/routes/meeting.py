@@ -287,6 +287,42 @@ def generate_summary_stream(meeting_id):
                         time.sleep(1)  # 等待1秒
                         continue
                     
+                    # 如果任务被暂停，尝试继续等待（可能自动恢复）
+                    if task_status == 'PAUSED':
+                        yield f"data: {json.dumps({'type': 'status', 'message': '任务已暂停，等待恢复中...'}, ensure_ascii=False)}\n\n"
+                        # 对于暂停状态，可以等待一段时间看是否恢复
+                        # 最多等待20次（20秒）
+                        pause_wait_count = 0
+                        max_pause_waits = 20
+                        while pause_wait_count < max_pause_waits:
+                            time.sleep(1)
+                            pause_wait_count += 1
+                            poll_count += 1
+                            
+                            # 重新查询任务状态
+                            task_info = tytingwu_service.get_task_info(task_id)
+                            if task_info.get('Code') == '0':
+                                task_data = task_info.get('Data', {})
+                                task_status = task_data.get('TaskStatus', 'UNKNOWN')
+                                yield f"data: {json.dumps({'type': 'status', 'message': f'任务状态: {task_status} (等待恢复中，已等待 {pause_wait_count} 秒)'}, ensure_ascii=False)}\n\n"
+                                
+                                # 如果状态恢复为 ONGOING 或 COMPLETED，跳出等待循环
+                                if task_status in ['ONGOING', 'COMPLETED']:
+                                    break
+                                elif task_status != 'PAUSED':
+                                    # 状态变为其他状态（如 FAILED），跳出等待循环
+                                    break
+                        
+                        # 如果等待后仍然是 PAUSED，提示错误
+                        if task_status == 'PAUSED':
+                            yield f"data: {json.dumps({'type': 'error', 'message': '任务出现异常，无法总结'}, ensure_ascii=False)}\n\n"
+                            break
+                        
+                        # 如果状态变为 ONGOING，继续轮询
+                        if task_status == 'ONGOING':
+                            continue
+                        # 如果状态变为 COMPLETED，继续处理（会进入下面的 COMPLETED 分支）
+                    
                     # 任务已完成或失败，开始处理结果
                     if task_status == 'COMPLETED':
                         yield f"data: {json.dumps({'type': 'status', 'message': '任务已完成，开始下载结果...'}, ensure_ascii=False)}\n\n"

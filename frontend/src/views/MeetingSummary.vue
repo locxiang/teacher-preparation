@@ -52,10 +52,32 @@
       </div>
     </div>
 
-    <!-- Content State -->
-    <div v-else-if="meeting && summaryData" class="min-h-screen bg-gray-50">
+    <!-- Content State - 只要有会议数据就显示，即使没有摘要或出现错误 -->
+    <div v-else-if="meeting" class="min-h-screen bg-gray-50">
+      <!-- 错误提示横幅（如果有错误） -->
+      <div v-if="errorMessage" class="bg-red-50 border-b border-red-200 sticky top-0 z-20">
+        <div class="max-w-[1600px] mx-auto px-8 py-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <svg class="w-5 h-5 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p class="text-sm text-red-800 font-medium">{{ errorMessage }}</p>
+            </div>
+            <button
+              @click="errorMessage = ''"
+              class="text-red-600 hover:text-red-800 transition-colors"
+              title="关闭"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
       <!-- 顶部固定栏 - 企业级设计 -->
-      <div class="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+      <div class="bg-white border-b border-gray-200 sticky shadow-sm" :class="errorMessage ? 'top-[52px] z-10' : 'top-0 z-10'">
         <div class="max-w-[1600px] mx-auto px-8 py-4">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-6">
@@ -150,7 +172,7 @@
               </div>
             </div>
             <!-- 全文摘要 -->
-            <div v-if="summaryData.paragraph_summary || summaryData.summary" class="bg-white border border-gray-200 rounded shadow-sm">
+            <div v-if="summaryData && (summaryData.paragraph_summary || summaryData.summary)" class="bg-white border border-gray-200 rounded shadow-sm">
               <div class="px-5 py-3 border-b border-gray-200 bg-gray-50">
                 <h3 class="text-sm font-semibold text-gray-900 flex items-center">
                   <svg class="w-4 h-4 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -165,9 +187,32 @@
                 </div>
               </div>
             </div>
+            
+            <!-- 无摘要数据时的提示 -->
+            <div v-else-if="!summaryData && !isGenerating" class="bg-yellow-50 border border-yellow-200 rounded shadow-sm">
+              <div class="p-5">
+                <div class="flex items-start">
+                  <svg class="w-5 h-5 text-yellow-600 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <div class="flex-1">
+                    <h3 class="text-sm font-semibold text-yellow-800 mb-1">暂无会议摘要</h3>
+                    <p class="text-sm text-yellow-700 mb-3">会议摘要生成失败或尚未生成，您可以查看下方的完整对话记录。</p>
+                    <button
+                      v-if="meeting?.task_id"
+                      @click="regenerateSummary"
+                      :disabled="isRegenerating"
+                      class="px-4 py-2 text-sm bg-yellow-600 text-white rounded font-medium hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {{ isRegenerating ? '重新生成中...' : '重新生成摘要' }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             <!-- 发言总结 -->
-            <div v-if="summaryData.conversational_summary && summaryData.conversational_summary.length > 0" class="bg-white border border-gray-200 rounded shadow-sm">
+            <div v-if="summaryData?.conversational_summary && summaryData.conversational_summary.length > 0" class="bg-white border border-gray-200 rounded shadow-sm">
               <div class="px-5 py-3 border-b border-gray-200 bg-gray-50">
                 <h3 class="text-sm font-semibold text-gray-900 flex items-center">
                   <svg class="w-4 h-4 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -201,7 +246,7 @@
             </div>
 
             <!-- 问答回顾 -->
-            <div v-if="summaryData.questions_answering_summary && summaryData.questions_answering_summary.length > 0" class="bg-white border border-gray-200 rounded shadow-sm">
+            <div v-if="summaryData?.questions_answering_summary && summaryData.questions_answering_summary.length > 0" class="bg-white border border-gray-200 rounded shadow-sm">
               <div class="px-5 py-3 border-b border-gray-200 bg-gray-50">
                 <h3 class="text-sm font-semibold text-gray-900 flex items-center">
                   <svg class="w-4 h-4 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -235,7 +280,7 @@
             </div>
 
             <!-- 思维导图 -->
-            <div v-if="summaryData.mind_map_summary && summaryData.mind_map_summary.length > 0" class="bg-white border border-gray-200 rounded shadow-sm">
+            <div v-if="summaryData?.mind_map_summary && summaryData.mind_map_summary.length > 0" class="bg-white border border-gray-200 rounded shadow-sm">
               <div class="px-5 py-3 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
                 <h3 class="text-sm font-semibold text-gray-900 flex items-center">
                   <svg class="w-4 h-4 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -310,7 +355,7 @@
           <!-- 右侧固定边栏 -->
           <div class="col-span-12 xl:col-span-4 space-y-5">
             <!-- 关键词 -->
-            <div v-if="summaryData.meeting_assistance?.keywords && summaryData.meeting_assistance.keywords.length > 0" class="bg-white border border-gray-200 rounded shadow-sm">
+            <div v-if="summaryData?.meeting_assistance?.keywords && summaryData.meeting_assistance.keywords.length > 0" class="bg-white border border-gray-200 rounded shadow-sm">
               <div class="px-5 py-3 border-b border-gray-200 bg-gray-50">
                 <h3 class="text-sm font-semibold text-gray-900 flex items-center">
                   <svg class="w-4 h-4 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -333,7 +378,7 @@
             </div>
 
             <!-- 重点内容 -->
-            <div v-if="summaryData.meeting_assistance?.key_sentences && summaryData.meeting_assistance.key_sentences.length > 0" class="bg-white border border-gray-200 rounded shadow-sm">
+            <div v-if="summaryData?.meeting_assistance?.key_sentences && summaryData.meeting_assistance.key_sentences.length > 0" class="bg-white border border-gray-200 rounded shadow-sm">
               <div class="px-5 py-3 border-b border-gray-200 bg-gray-50">
                 <h3 class="text-sm font-semibold text-gray-900 flex items-center">
                   <svg class="w-4 h-4 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -375,7 +420,7 @@
               </div>
               <div class="p-4">
                 <!-- 新格式：meeting_assistance.actions -->
-                <div v-if="summaryData.meeting_assistance?.actions && summaryData.meeting_assistance.actions.length > 0" class="space-y-2">
+                <div v-if="summaryData?.meeting_assistance?.actions && summaryData.meeting_assistance.actions.length > 0" class="space-y-2">
                   <div
                     v-for="(action, index) in summaryData.meeting_assistance.actions"
                     :key="index"
@@ -394,7 +439,7 @@
                   </div>
                 </div>
                 <!-- 旧格式：action_items -->
-                <div v-else-if="summaryData.action_items && summaryData.action_items.length > 0" class="space-y-2">
+                <div v-else-if="summaryData?.action_items && summaryData.action_items.length > 0" class="space-y-2">
                   <div
                     v-for="(item, index) in summaryData.action_items"
                     :key="index"
@@ -979,6 +1024,18 @@ const generateSummary = async () => {
                   progressSteps.value[0].completed = true
                   progressSteps.value[0].active = false
                   progressSteps.value[1].active = true
+                  updateProgress()
+                } else if (message.includes('任务状态: PAUSED') || message.includes('任务已暂停')) {
+                  // 任务已暂停，保持当前步骤激活，显示等待状态
+                  if (!progressSteps.value[0].active) {
+                    progressSteps.value[0].active = true
+                  }
+                  updateProgress()
+                } else if (message.includes('等待恢复中')) {
+                  // 任务暂停后等待恢复，保持当前步骤激活
+                  if (!progressSteps.value[0].active) {
+                    progressSteps.value[0].active = true
+                  }
                   updateProgress()
                 } else if (message.includes('正在下载摘要结果')) {
                   // 激活步骤2

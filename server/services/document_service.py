@@ -320,19 +320,46 @@ class DocumentService:
         if not document:
             return None
         
-        document.status = status
-        if parse_progress is not None:
-            document.parse_progress = parse_progress
-        if parsed_content is not None:
-            document.parsed_content = parsed_content
-        if summary is not None:
-            document.summary = summary
-        if error_message is not None:
-            document.error_message = error_message
-        
-        db.session.commit()
-        
-        return document
+        try:
+            document.status = status
+            if parse_progress is not None:
+                document.parse_progress = parse_progress
+            if parsed_content is not None:
+                # 安全措施：如果内容过长，截断并记录警告
+                # LONGTEXT 最大支持约 4GB，但为了安全，我们限制为 100MB（约 100,000,000 字符）
+                MAX_CONTENT_LENGTH = 100 * 1024 * 1024  # 100MB
+                original_length = len(parsed_content)
+                if original_length > MAX_CONTENT_LENGTH:
+                    logger.warning(f"文档 {document_id} 的解析内容过长 ({original_length} 字符)，将被截断到 {MAX_CONTENT_LENGTH} 字符")
+                    parsed_content = parsed_content[:MAX_CONTENT_LENGTH]
+                    # 如果内容被截断，在错误信息中记录
+                    truncate_msg = f"注意：文档内容过长，已截断（原始长度: {original_length} 字符，截断后: {len(parsed_content)} 字符）"
+                    if error_message:
+                        error_message = f"{error_message}; {truncate_msg}"
+                    else:
+                        error_message = truncate_msg
+                document.parsed_content = parsed_content
+            if summary is not None:
+                document.summary = summary
+            if error_message is not None:
+                document.error_message = error_message
+            
+            db.session.commit()
+            return document
+        except Exception as e:
+            logger.error(f"更新文档状态失败 - document_id: {document_id}, 错误: {str(e)}", exc_info=True)
+            db.session.rollback()
+            # 如果更新失败，尝试至少更新状态为 failed
+            try:
+                document = Document.query.get(document_id)
+                if document:
+                    document.status = 'failed'
+                    document.error_message = f"更新文档状态时发生错误: {str(e)}"
+                    db.session.commit()
+            except Exception as e2:
+                logger.error(f"无法更新文档状态为失败 - document_id: {document_id}, 错误: {str(e2)}", exc_info=True)
+                db.session.rollback()
+            raise
     
     def parse_docx(self, file_path: str) -> str:
         """
@@ -488,6 +515,11 @@ class DocumentService:
             logger.info(f"文档 {document_id} 不是docx格式，跳过解析")
             return document
         
+        # 如果文档已经是失败状态，不再重新解析
+        if document.status == 'failed':
+            logger.info(f"文档 {document_id} 已经是失败状态，跳过解析")
+            return document
+        
         try:
             # 更新状态为处理中
             self.update_document_status(document_id, 'processing', parse_progress=10)
@@ -495,7 +527,18 @@ class DocumentService:
             # 解析docx文件
             logger.info(f"开始解析docx文件: {document.file_path}")
             parsed_content = self.parse_docx(document.file_path)
-            self.update_document_status(document_id, 'processing', parse_progress=50, parsed_content=parsed_content)
+            
+            # 保存解析内容（可能会截断）
+            try:
+                self.update_document_status(document_id, 'processing', parse_progress=50, parsed_content=parsed_content)
+            except Exception as e:
+                # 如果保存解析内容失败，记录错误但继续处理
+                logger.warning(f"保存解析内容时出错（可能内容过长）: {str(e)}")
+                # 尝试只更新进度，不保存内容
+                try:
+                    self.update_document_status(document_id, 'processing', parse_progress=50)
+                except:
+                    pass
             
             # 获取会议信息（用于AI提取摘要的上下文）
             from models.meeting import Meeting
@@ -503,18 +546,38 @@ class DocumentService:
             subject = meeting.subject if meeting else None
             grade = meeting.grade if meeting else None
             
-            # 使用AI提取摘要
+            # 使用AI提取摘要（即使失败也不影响整体流程）
             logger.info(f"开始使用AI提取摘要: {document_id}")
             summary = self.extract_summary_with_ai(parsed_content, subject, grade)
             
             # 分别存储解析内容和摘要
-            self.update_document_status(
-                document_id,
-                'completed',
-                parse_progress=100,
-                parsed_content=parsed_content,
-                summary=summary if summary else None
-            )
+            try:
+                self.update_document_status(
+                    document_id,
+                    'completed',
+                    parse_progress=100,
+                    parsed_content=parsed_content,
+                    summary=summary if summary else None
+                )
+            except Exception as e:
+                # 如果最终保存失败，尝试至少保存状态和摘要
+                logger.warning(f"保存最终状态时出错: {str(e)}")
+                try:
+                    self.update_document_status(
+                        document_id,
+                        'completed',
+                        parse_progress=100,
+                        summary=summary if summary else None
+                    )
+                except:
+                    # 如果还是失败，至少标记为失败状态
+                    self.update_document_status(
+                        document_id,
+                        'failed',
+                        parse_progress=0,
+                        error_message=f"保存解析结果时出错: {str(e)}"
+                    )
+                    raise
             
             logger.info(f"文档解析和摘要提取完成: {document_id}")
             return document
@@ -522,11 +585,27 @@ class DocumentService:
         except Exception as e:
             error_msg = f"解析文档失败: {str(e)}"
             logger.error(error_msg, exc_info=True)
-            self.update_document_status(
-                document_id,
-                'failed',
-                parse_progress=0,
-                error_message=error_msg
-            )
+            # 确保状态更新为失败，即使更新失败也要尝试
+            try:
+                self.update_document_status(
+                    document_id,
+                    'failed',
+                    parse_progress=0,
+                    error_message=error_msg
+                )
+            except Exception as e2:
+                # 如果更新失败状态也失败，记录错误但不再抛出异常
+                logger.error(f"无法更新文档状态为失败 - document_id: {document_id}, 错误: {str(e2)}", exc_info=True)
+                # 尝试直接更新数据库
+                try:
+                    document = Document.query.get(document_id)
+                    if document:
+                        document.status = 'failed'
+                        document.parse_progress = 0
+                        document.error_message = error_msg
+                        db.session.commit()
+                except:
+                    db.session.rollback()
+            
             return document
 

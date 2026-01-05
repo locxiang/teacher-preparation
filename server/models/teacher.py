@@ -3,6 +3,7 @@
 """
 from datetime import datetime
 from database import db
+from utils.datetime_utils import beijing_now
 
 
 class Teacher(db.Model):
@@ -14,8 +15,8 @@ class Teacher(db.Model):
     subject = db.Column(db.String(50), nullable=False)  # 学科：数学、语文等
     feature_id = db.Column(db.String(100), nullable=True)  # 声纹特征ID（可选）
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)  # 创建者ID
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=beijing_now, nullable=False)
+    updated_at = db.Column(db.DateTime, default=beijing_now, onupdate=beijing_now, nullable=False)
     
     def to_dict(self):
         """转换为字典"""

@@ -90,7 +90,7 @@
               <template v-else>
                 <div class="text-5xl mb-3 text-gray-300 group-hover:text-nanyu-400 transition-colors">📄</div>
                 <h3 class="text-sm font-medium text-gray-700 mb-1">点击或拖拽文件到此处上传</h3>
-                <p class="text-gray-400 text-xs">仅支持 DOCX 格式（Word 文档），单个文件不超过 20MB</p>
+                <p class="text-gray-400 text-xs">仅支持 DOCX 格式（Word 文档），单个文件不超过 5MB</p>
                 <p class="text-gray-400 text-xs mt-1">文档将逐个上传并解析，请耐心等待</p>
                 <p v-if="uploadError" class="text-red-500 text-xs mt-2">{{ uploadError }}</p>
               </template>
@@ -515,10 +515,65 @@ const loadDocuments = async () => {
   try {
     const data = await getDocuments(meetingId.value)
     documents.value = data
+    
+    // 检查是否有 processing 状态的文档，如果有且定时器未运行，重新启动定时器
+    const hasProcessing = documents.value.some(doc => doc.status === 'processing')
+    if (hasProcessing && refreshInterval === null) {
+      startRefreshInterval()
+    }
   } catch (error) {
     uploadError.value = error instanceof Error ? error.message : '获取文档列表失败'
+    throw error  // 重新抛出错误，让调用者知道失败了
   } finally {
     isLoading.value = false
+  }
+}
+
+// 启动刷新定时器
+const startRefreshInterval = () => {
+  // 如果已经有定时器在运行，不重复启动
+  if (refreshInterval !== null) {
+    return
+  }
+  
+  consecutiveFailures = 0
+  
+  refreshInterval = window.setInterval(() => {
+    if (meetingId.value) {
+      const hasProcessing = documents.value.some(doc => doc.status === 'processing')
+      const hasFailed = documents.value.some(doc => doc.status === 'failed')
+      
+      // 只刷新有 processing 状态的文档，排除 failed 状态的文档
+      if (hasProcessing && !hasFailed) {
+        loadDocuments().then(() => {
+          // 刷新成功，重置失败计数
+          consecutiveFailures = 0
+        }).catch(() => {
+          // 刷新失败，增加失败计数
+          consecutiveFailures++
+          // 如果连续失败太多次，停止刷新（可能是网络问题）
+          if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+            console.warn('文档状态刷新连续失败，已停止自动刷新')
+            stopRefreshInterval()
+          }
+        })
+      } else if (hasFailed && !hasProcessing) {
+        // 如果只有失败的文档，没有正在处理的，停止刷新
+        stopRefreshInterval()
+      } else if (!hasProcessing) {
+        // 如果没有正在处理的文档，停止刷新
+        stopRefreshInterval()
+      }
+    }
+  }, 2000) // 每2秒刷新一次，更及时地更新状态
+}
+
+// 停止刷新定时器
+const stopRefreshInterval = () => {
+  if (refreshInterval !== null) {
+    clearInterval(refreshInterval)
+    refreshInterval = null
+    consecutiveFailures = 0
   }
 }
 
@@ -586,8 +641,8 @@ const uploadFiles = async (files: File[]) => {
       uploadError.value = `文件 ${file.name} 格式不支持，仅支持 DOCX 格式`
       return false
     }
-    if (file.size > 20 * 1024 * 1024) {
-      uploadError.value = `文件 ${file.name} 超过20MB限制`
+    if (file.size > 5 * 1024 * 1024) {
+      uploadError.value = `文件 ${file.name} 超过5MB限制`
       return false
     }
     return true
@@ -625,6 +680,11 @@ const uploadFiles = async (files: File[]) => {
         
         // 添加到列表开头
         documents.value.unshift(doc)
+        
+        // 如果文档是 processing 状态，启动定时器
+        if (doc.status === 'processing') {
+          startRefreshInterval()
+        }
         
         // 刷新文档列表以获取最新状态
         await loadDocuments()
@@ -692,26 +752,22 @@ const handleDeleteDocument = async (documentId: number) => {
 }
 
 let refreshInterval: number | null = null
+let consecutiveFailures = 0  // 连续失败次数
+const MAX_CONSECUTIVE_FAILURES = 5  // 最大连续失败次数
 
 onMounted(async () => {
   await initializeMeeting()
-
-  // 定期刷新文档状态（如果正在处理）
-  refreshInterval = window.setInterval(() => {
-    if (meetingId.value) {
-      const hasProcessing = documents.value.some(doc => doc.status === 'processing')
-      if (hasProcessing) {
-        loadDocuments()
-      }
-    }
-  }, 2000) // 每2秒刷新一次，更及时地更新状态
+  
+  // 初始化后检查是否有正在处理的文档，如果有则启动定时器
+  const hasProcessing = documents.value.some(doc => doc.status === 'processing')
+  if (hasProcessing) {
+    startRefreshInterval()
+  }
 })
 
 onUnmounted(() => {
   // 组件卸载时清除定时器
-  if (refreshInterval !== null) {
-    clearInterval(refreshInterval)
-  }
+  stopRefreshInterval()
 })
 </script>
 

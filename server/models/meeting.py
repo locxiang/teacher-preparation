@@ -3,6 +3,7 @@
 """
 from datetime import datetime
 from database import db
+from utils.datetime_utils import beijing_now
 
 
 class Meeting(db.Model):
@@ -19,8 +20,8 @@ class Meeting(db.Model):
     task_id = db.Column(db.String(100), nullable=True)  # 通义听悟任务ID
     stream_url = db.Column(db.String(500), nullable=True)  # 推流URL
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=beijing_now, nullable=False, index=True)
+    updated_at = db.Column(db.DateTime, default=beijing_now, onupdate=beijing_now, nullable=False)
     
     # 关系
     transcripts = db.relationship('Transcript', backref='meeting', lazy=True, cascade='all, delete-orphan')

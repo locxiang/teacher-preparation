@@ -35,6 +35,10 @@ def _get_mysql_column_type(column):
             return f'VARCHAR({length})'
         return 'VARCHAR(255)'
     elif 'TEXT' in type_name:
+        # 检查是否是 LONGTEXT（通过 length=None 判断）
+        length = getattr(col_type, 'length', None)
+        if length is None and 'Text' in type_name:
+            return 'LONGTEXT'
         return 'TEXT'
     elif 'INTEGER' in type_name or 'Integer' in type_name:
         return 'INT'
@@ -79,9 +83,9 @@ def _get_mysql_column_definition(column):
         # 处理可调用的默认值（如 datetime.utcnow）
         if hasattr(default, 'arg'):
             default_value = default.arg
-            # 如果是可调用对象（如 datetime.utcnow），MySQL 使用 CURRENT_TIMESTAMP
+            # 如果是可调用对象（如 datetime.utcnow 或 beijing_now），MySQL 使用 CURRENT_TIMESTAMP
             if callable(default_value):
-                if 'datetime' in str(default_value).lower() or 'utcnow' in str(default_value).lower():
+                if 'datetime' in str(default_value).lower() or 'utcnow' in str(default_value).lower() or 'beijing_now' in str(default_value).lower():
                     parts.append('DEFAULT CURRENT_TIMESTAMP')
                 else:
                     # 其他可调用对象，暂时不设置默认值
@@ -101,7 +105,7 @@ def _get_mysql_column_definition(column):
     if column.onupdate is not None:
         onupdate = column.onupdate
         if hasattr(onupdate, 'arg') and callable(onupdate.arg):
-            if 'datetime' in str(onupdate.arg).lower() or 'utcnow' in str(onupdate.arg).lower():
+            if 'datetime' in str(onupdate.arg).lower() or 'utcnow' in str(onupdate.arg).lower() or 'beijing_now' in str(onupdate.arg).lower():
                 # MySQL 使用 ON UPDATE CURRENT_TIMESTAMP
                 parts.append('ON UPDATE CURRENT_TIMESTAMP')
     
@@ -201,14 +205,27 @@ def init_db(app):
     自动创建表和字段，让数据库自动适配代码
     """
     # 数据库配置
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
+    database_url = os.getenv(
         'DATABASE_URL',
         app.config.get('SQLALCHEMY_DATABASE_URI', 'mysql://user:password@localhost/dbname')
     )
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
     # 初始化SQLAlchemy
     db.init_app(app)
+    
+    # 设置数据库连接时区为北京时间（UTC+8）
+    # 使用事件监听器，在每次连接建立后自动设置时区
+    from sqlalchemy import event
+    from sqlalchemy.engine import Engine
+    
+    @event.listens_for(Engine, "connect")
+    def set_timezone(dbapi_conn, connection_record):
+        """在连接建立后设置时区为北京时间（UTC+8）"""
+        cursor = dbapi_conn.cursor()
+        cursor.execute("SET time_zone = '+08:00'")
+        cursor.close()
     
     # 导入所有模型（确保 SQLAlchemy 知道所有表结构）
     from models import User, Meeting, Transcript, Teacher, Document, MeetingTeacher

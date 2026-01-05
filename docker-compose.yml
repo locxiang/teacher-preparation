@@ -9,10 +9,12 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE:-teacher_preparation}
       MYSQL_USER: ${MYSQL_USER:-teacher_user}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-teacher_password}
+      TZ: Asia/Shanghai  # 设置容器时区为北京时间
+    command: --default-time-zone='+08:00'  # 设置MySQL默认时区为北京时间
     ports:
       - "${MYSQL_PORT:-3306}:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - ./data/mysql:/var/lib/mysql
     networks:
       - teacher_prep_network
     healthcheck:
@@ -65,20 +67,30 @@ services:
     volumes:
       - ./server:/app
       - ./nls-1.1.0-py3-none-any.whl:/tmp/nls-1.1.0-py3-none-any.whl:ro
-      - backend_packages:/usr/local/lib/python3.13/site-packages
+      - ./data/backend_packages:/usr/local/lib/python3.13/site-packages
     entrypoint: >
       bash -c "
-        if ! command -v gcc &> /dev/null; then
-          apt-get update && apt-get install -y gcc && rm -rf /var/lib/apt/lists/*
+        set -e
+        # 安装系统依赖
+        apt-get update && apt-get install -y gcc curl && rm -rf /var/lib/apt/lists/*
+        # 确保 pip 可用（Python 3.13 可能需要先安装 pip）
+        if ! python -m pip --version &>/dev/null; then
+          echo '安装 pip...' &&
+          python -m ensurepip --upgrade || curl -sS https://bootstrap.pypa.io/get-pip.py | python
         fi &&
-        pip install --quiet --no-cache-dir -r requirements.txt &&
+        # 升级 pip
+        python -m pip install --upgrade pip setuptools wheel &&
+        # 安装项目依赖
+        python -m pip install --quiet --no-cache-dir -r requirements.txt &&
+        # 安装阿里云实时转写SDK（如果存在）
         if [ -f /tmp/nls-1.1.0-py3-none-any.whl ]; then
           echo '安装阿里云实时转写SDK...' &&
-          pip install --quiet --no-cache-dir /tmp/nls-1.1.0-py3-none-any.whl &&
+          python -m pip install --quiet --no-cache-dir /tmp/nls-1.1.0-py3-none-any.whl &&
           echo '✓ 阿里云实时转写SDK安装完成'
         else
           echo '警告: nls-1.1.0-py3-none-any.whl 文件未找到，跳过SDK安装'
         fi &&
+        # 启动应用
         python app.py
       "
     depends_on:
@@ -100,30 +112,18 @@ services:
       - "${FRONTEND_PORT:-5173}:5173"
     volumes:
       - ./frontend:/app
-      - frontend_node_modules:/app/node_modules
     entrypoint: >
       sh -c "
-        if [ -f pnpm-lock.yaml ]; then
-          if ! command -v pnpm &> /dev/null; then npm install -g pnpm; fi &&
-          pnpm install &&
-          pnpm dev --host 0.0.0.0
-        else
-          npm install &&
-          npm run dev -- --host 0.0.0.0
-        fi
+        if ! command -v pnpm &> /dev/null; then
+          npm install -g pnpm
+        fi &&
+        pnpm install &&
+        pnpm dev --host 0.0.0.0
       "
     depends_on:
       - backend
     networks:
       - teacher_prep_network
-
-volumes:
-  mysql_data:
-    driver: local
-  backend_packages:
-    driver: local
-  frontend_node_modules:
-    driver: local
 
 networks:
   teacher_prep_network:

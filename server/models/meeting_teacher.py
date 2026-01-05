@@ -3,6 +3,7 @@
 """
 from datetime import datetime
 from database import db
+from utils.datetime_utils import beijing_now
 
 
 class MeetingTeacher(db.Model):
@@ -13,7 +14,7 @@ class MeetingTeacher(db.Model):
     meeting_id = db.Column(db.String(36), db.ForeignKey('meetings.id'), nullable=False, index=True)
     teacher_id = db.Column(db.Integer, db.ForeignKey('teachers.id'), nullable=False, index=True)
     is_host = db.Column(db.Boolean, default=False, nullable=False)  # 是否是主持人
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=beijing_now, nullable=False)
     
     # 关系
     meeting = db.relationship('Meeting', backref='meeting_teachers')
