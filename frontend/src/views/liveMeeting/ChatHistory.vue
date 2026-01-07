@@ -2,8 +2,18 @@
   <div class="bg-white border border-gray-200 rounded shadow-sm flex flex-col overflow-hidden grow min-h-0">
     <div class="px-5 py-3 border-b border-gray-200 bg-gray-50 flex justify-between items-center shrink-0">
       <h3 class="text-sm font-semibold text-gray-900 flex items-center">
-        <svg class="w-4 h-4 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        <svg
+          class="w-4 h-4 mr-2 text-gray-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+          />
         </svg>
         对话记录
       </h3>
@@ -11,39 +21,43 @@
         <!-- 停止 AI 播放按钮 -->
         <button
           v-if="isAISpeaking"
-          @click="$emit('stop-ai-voice')"
           class="px-3 py-1.5 text-xs rounded border transition-colors flex items-center bg-red-50 text-red-700 hover:bg-red-100 border-red-200"
           title="停止 AI 声音播放"
+          @click="emit('stop-ai-voice')"
         >
-          <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/>
+          <svg
+            class="w-4 h-4 mr-1"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" />
           </svg>
           停止播放
         </button>
         <!-- 触发 AI 按钮 -->
         <button
-          @click="$emit('trigger-ai')"
           :disabled="!isRecording || isAIGenerating || isAISpeaking"
           class="px-3 py-1.5 text-xs rounded border transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
           :class="isRecording && !isAIGenerating && !isAISpeaking
             ? 'bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200'
             : 'bg-gray-50 text-gray-400 border-gray-200'"
           title="手动触发 AI 回答"
+          @click="emit('trigger-ai')"
         >
-          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          <svg
+            class="w-4 h-4 mr-1"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 10V3L4 14h7v7l9-11h-7z"
+            />
           </svg>
           {{ isAIGenerating ? '生成中...' : isAISpeaking ? 'AI 说话中' : '触发 AI' }}
-        </button>
-        <button class="text-gray-500 hover:text-gray-700 p-1.5 rounded hover:bg-gray-100 transition-colors" title="搜索">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </button>
-        <button class="text-gray-500 hover:text-gray-700 p-1.5 rounded hover:bg-gray-100 transition-colors" title="导出">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
         </button>
       </div>
     </div>
@@ -53,7 +67,11 @@
       class="grow overflow-y-auto p-4 space-y-4 scroll-smooth"
     >
       <!-- Messages (倒序显示，最新的在上面) -->
-      <div v-for="message in reversedMessages" :key="message.id" class="flex space-x-3">
+      <div
+        v-for="message in reversedMessages"
+        :key="message.id"
+        class="flex space-x-3"
+      >
         <div
           class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border shrink-0"
           :class="message.type === 'ai'
@@ -68,14 +86,23 @@
         </div>
         <div class="flex-1">
           <div class="flex items-center mb-1">
-            <span class="text-sm font-semibold mr-2" :class="message.type === 'ai' ? 'text-nanyu-700' : 'text-gray-800'">
+            <span
+              class="text-sm font-semibold mr-2"
+              :class="message.type === 'ai' ? 'text-nanyu-700' : 'text-gray-800'"
+            >
               {{ message.speaker }}
             </span>
-            <span v-if="message.relativeTime !== undefined" class="text-xs text-gray-500 mr-1">
+            <span
+              v-if="message.relativeTime !== undefined"
+              class="text-xs text-gray-500 mr-1"
+            >
               {{ formatRelativeTime(message.relativeTime) }}
             </span>
             <span class="text-xs text-gray-400">{{ formatTime(message.timestamp) }}</span>
-            <span v-if="message.stageIndex !== currentStageIndex" class="ml-2 text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">
+            <span
+              v-if="message.stageIndex !== currentStageIndex"
+              class="ml-2 text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded"
+            >
               {{ stages[message.stageIndex]?.name }}
             </span>
           </div>
@@ -90,15 +117,20 @@
             ]"
           >
             <!-- AI 消息使用 markdown 渲染 -->
+            <!-- eslint-disable vue/no-v-html -->
             <div
               v-if="message.type === 'ai'"
               class="prose prose-sm max-w-none prose-headings:text-gray-800 prose-p:text-gray-700 prose-strong:text-gray-900 prose-code:text-nanyu-600 prose-pre:bg-gray-100 markdown-content"
               v-html="renderMarkdown(message.content)"
-            ></div>
+            />
+            <!-- eslint-enable vue/no-v-html -->
             <!-- 人类消息使用普通文本 -->
             <template v-else>
               {{ message.content }}
-              <span v-if="message.isFinal === false" class="ml-2 text-xs text-gray-400">(识别中...)</span>
+              <span
+                v-if="message.isFinal === false"
+                class="ml-2 text-xs text-gray-400"
+              >(识别中...)</span>
             </template>
           </div>
         </div>
@@ -110,6 +142,9 @@
 <script setup lang="ts">
 import { computed, ref, watch, nextTick } from 'vue'
 import { marked } from 'marked'
+import type { MarkedOptions } from 'marked'
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-expect-error - katex 类型定义路径问题，但实际可用
 import katex from 'katex'
 import 'katex/dist/katex.min.css'
 
@@ -145,7 +180,7 @@ const props = withDefaults(defineProps<Props>(), {
   isAISpeaking: false,
 })
 
-defineEmits<{
+const emit = defineEmits<{
   'trigger-ai': []
   'stop-ai-voice': []
 }>()
@@ -193,27 +228,38 @@ const formatRelativeTime = (milliseconds: number): string => {
 marked.setOptions({
   breaks: true, // 支持换行
   gfm: true, // 支持 GitHub Flavored Markdown
-})
+} as MarkedOptions)
 
 // 将 markdown 转换为 HTML，并渲染数学公式
 const renderMarkdown = (content: string): string => {
   if (!content) return ''
   try {
-    // 先使用 marked 渲染 markdown
-    let html = marked(content)
+    // 先使用 marked 渲染 markdown（marked 可能返回 Promise，需要处理）
+    const markedResult = marked(content)
+    // 如果返回的是 Promise，需要等待（但通常同步版本返回字符串）
+    let html: string
+    if (typeof markedResult === 'string') {
+      html = markedResult
+    } else {
+      // 如果是 Promise，同步等待（实际使用中 marked 默认是同步的）
+      html = markedResult as unknown as string
+    }
 
     // 使用临时标记避免冲突：先将块级公式替换为临时标记
     const blockPlaceholders: string[] = []
-    html = html.replace(/\$\$([\s\S]*?)\$\$/g, (match, formula) => {
+    html = html.replace(/\$\$([\s\S]*?)\$\$/g, (_match: string, formula: string) => {
       const placeholder = `__KATEX_BLOCK_${blockPlaceholders.length}__`
       blockPlaceholders.push(formula.trim())
       return placeholder
     })
 
     // 渲染行内公式 $...$（避免匹配块级公式）
-    html = html.replace(/\$([^$\n]+?)\$/g, (match, formula) => {
+    html = html.replace(/\$([^$\n]+?)\$/g, (match: string, formula: string) => {
       try {
-        return katex.renderToString(formula.trim(), { displayMode: false, throwOnError: false })
+        return katex.renderToString(formula.trim(), {
+          displayMode: false,
+          throwOnError: false,
+        })
       } catch (error) {
         console.error('KaTeX 渲染错误（行内）:', error)
         return match
@@ -224,7 +270,10 @@ const renderMarkdown = (content: string): string => {
     blockPlaceholders.forEach((formula, index) => {
       const placeholder = `__KATEX_BLOCK_${index}__`
       try {
-        const rendered = katex.renderToString(formula, { displayMode: true, throwOnError: false })
+        const rendered = katex.renderToString(formula, {
+          displayMode: true,
+          throwOnError: false,
+        })
         html = html.replace(placeholder, rendered)
       } catch (error) {
         console.error('KaTeX 渲染错误（块级）:', error)

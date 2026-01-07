@@ -494,6 +494,9 @@ const initializeMeeting = async () => {
     meetingId.value = meetingData.id
     meeting.value = meetingData
 
+    // 清除 sessionStorage 中的表单数据，避免下次新建会议时显示上次的信息
+    sessionStorage.removeItem('meetingFormData')
+
     // 加载文档列表
     await loadDocuments()
   } catch (error) {
