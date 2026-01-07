@@ -61,13 +61,16 @@ class Meeting(db.Model):
             # 包含参与的老师信息
             teachers_data = []
             host_teacher = None
-            for mt in self.meeting_teachers:
-                teacher_data = mt.teacher.to_dict() if mt.teacher else None
-                if teacher_data:
-                    teacher_data['is_host'] = mt.is_host
-                    teachers_data.append(teacher_data)
-                    if mt.is_host:
-                        host_teacher = teacher_data
+            # 确保 meeting_teachers 关系已加载
+            if hasattr(self, 'meeting_teachers') and self.meeting_teachers:
+                for mt in self.meeting_teachers:
+                    if mt.teacher:  # 确保教师记录存在
+                        teacher_data = mt.teacher.to_dict()
+                        teacher_data['is_host'] = mt.is_host
+                        teachers_data.append(teacher_data)
+                        if mt.is_host:
+                            host_teacher = teacher_data
+            # 始终返回 teachers 数组（即使为空）
             data['teachers'] = teachers_data
             data['host_teacher'] = host_teacher
         

@@ -1,33 +1,37 @@
 """
-会议服务
+会议核心服务
+处理会议的基本 CRUD 操作和状态管理
 """
 import uuid
-import os
-import io
-from datetime import datetime
+import logging
 from typing import Dict, Optional, List
 from database import db
 from models.meeting import Meeting
-from models.transcript import Transcript
+from models.meeting_teacher import MeetingTeacher
 from services.tytingwu_service import TyingWuService
 
-# 尝试导入docx库
-try:
-    from docx import Document as DocxDocument
-    from docx.shared import Pt
-    from docx.enum.text import WD_ALIGN_PARAGRAPH
-    DOCX_AVAILABLE = True
-except ImportError:
-    DOCX_AVAILABLE = False
+logger = logging.getLogger(__name__)
 
 
 class MeetingService:
-    """会议服务类"""
+    """会议服务类 - 核心CRUD操作"""
     
     def __init__(self):
         self.tytingwu_service = TyingWuService()
     
-    def create_meeting(self, meeting_name: str, user_id: int, description: Optional[str] = None, subject: Optional[str] = None, grade: Optional[str] = None, lesson_type: Optional[str] = None, teacher_ids: Optional[List[int]] = None, host_teacher_id: Optional[int] = None, task_id: Optional[str] = None, stream_url: Optional[str] = None) -> Dict:
+    def create_meeting(
+        self,
+        meeting_name: str,
+        user_id: int,
+        description: Optional[str] = None,
+        subject: Optional[str] = None,
+        grade: Optional[str] = None,
+        lesson_type: Optional[str] = None,
+        teacher_ids: Optional[List[int]] = None,
+        host_teacher_id: Optional[int] = None,
+        task_id: Optional[str] = None,
+        stream_url: Optional[str] = None
+    ) -> Dict:
         """
         创建会议
         
@@ -48,7 +52,7 @@ class MeetingService:
         """
         meeting_id = str(uuid.uuid4())
         
-        # 创建会议记录（任务信息稍后通过update_meeting_task更新）
+        # 创建会议记录
         meeting = Meeting(
             id=meeting_id,
             name=meeting_name,
@@ -67,15 +71,13 @@ class MeetingService:
         
         # 保存会议和教师的关联关系
         if teacher_ids:
-            from models.meeting_teacher import MeetingTeacher
             from models.teacher import Teacher
             
             for teacher_id in teacher_ids:
                 # 验证教师是否存在
                 teacher = Teacher.query.get(teacher_id)
                 if not teacher:
-                    import logging
-                    logging.warning(f"教师不存在: {teacher_id}")
+                    logger.warning(f"教师不存在: {teacher_id}")
                     continue
                 
                 # 判断是否是主持人
@@ -150,7 +152,13 @@ class MeetingService:
         # 包含教师信息以便前端显示科目和数量
         return [m.to_dict(include_teachers=True) for m in meetings]
     
-    def update_meeting_task(self, meeting_id: str, task_id: str, stream_url: str, user_id: Optional[int] = None) -> Dict:
+    def update_meeting_task(
+        self,
+        meeting_id: str,
+        task_id: str,
+        stream_url: str,
+        user_id: Optional[int] = None
+    ) -> Dict:
         """
         更新会议的任务信息
         
@@ -192,8 +200,6 @@ class MeetingService:
         Returns:
             更新后的会议信息
         """
-        import logging
-        
         query = Meeting.query.filter_by(id=meeting_id)
         if user_id:
             query = query.filter_by(user_id=user_id)
@@ -203,26 +209,26 @@ class MeetingService:
             raise ValueError(f"会议不存在: {meeting_id}")
         
         if meeting.status == 'stopped':
-            return meeting.to_dict()
+            return meeting.to_dict(include_teachers=True)
         
         # 停止通义听悟任务（结束实时记录）
         try:
             if meeting.task_id:
-                logging.info(f"结束实时记录: TaskId={meeting.task_id}")
+                logger.info(f"结束实时记录: TaskId={meeting.task_id}")
                 stop_result = self.tytingwu_service.stop_task(meeting.task_id)
                 
                 # 检查停止结果
                 if stop_result.get('Code') == '0':
                     task_status = stop_result.get('Data', {}).get('TaskStatus', '')
-                    logging.info(f"实时记录已结束，任务状态: {task_status}")
+                    logger.info(f"实时记录已结束，任务状态: {task_status}")
                     
                     # 如果任务状态是ONGOING，说明正在后处理（摘要、要点提炼等）
                     if task_status == 'ONGOING':
-                        logging.info("任务进入后处理阶段，摘要和要点提炼功能正在处理中")
+                        logger.info("任务进入后处理阶段，摘要和要点提炼功能正在处理中")
                 else:
-                    logging.warning(f"结束实时记录失败: {stop_result.get('Message', '未知错误')}")
+                    logger.warning(f"结束实时记录失败: {stop_result.get('Message', '未知错误')}")
         except Exception as e:
-            logging.warning(f"停止任务失败: {str(e)}")
+            logger.warning(f"停止任务失败: {str(e)}")
             # 即使停止失败也更新状态
         
         meeting.status = 'stopped'
@@ -244,8 +250,6 @@ class MeetingService:
         Returns:
             更新后的会议信息
         """
-        import logging
-        
         query = Meeting.query.filter_by(id=meeting_id)
         if user_id:
             query = query.filter_by(user_id=user_id)
@@ -255,28 +259,27 @@ class MeetingService:
             raise ValueError(f"会议不存在: {meeting_id}")
         
         if meeting.status == 'completed':
-            return meeting.to_dict()
+            return meeting.to_dict(include_teachers=True)
         
         # 如果会议还在运行，先停止通义听悟任务（结束实时记录）
         if meeting.status == 'running':
             try:
                 if meeting.task_id:
-                    logging.info(f"结束实时记录: TaskId={meeting.task_id}")
+                    logger.info(f"结束实时记录: TaskId={meeting.task_id}")
                     stop_result = self.tytingwu_service.stop_task(meeting.task_id)
                     
                     # 检查停止结果
                     if stop_result.get('Code') == '0':
                         task_status = stop_result.get('Data', {}).get('TaskStatus', '')
-                        logging.info(f"实时记录已结束，任务状态: {task_status}")
+                        logger.info(f"实时记录已结束，任务状态: {task_status}")
                         
                         # 如果任务状态是ONGOING，说明正在后处理（摘要、要点提炼等）
-                        # 此时可以尝试获取结果，但可能需要等待一段时间
                         if task_status == 'ONGOING':
-                            logging.info("任务进入后处理阶段，摘要和要点提炼功能正在处理中")
+                            logger.info("任务进入后处理阶段，摘要和要点提炼功能正在处理中")
                     else:
-                        logging.warning(f"结束实时记录失败: {stop_result.get('Message', '未知错误')}")
+                        logger.warning(f"结束实时记录失败: {stop_result.get('Message', '未知错误')}")
             except Exception as e:
-                logging.warning(f"停止任务失败: {str(e)}")
+                logger.warning(f"停止任务失败: {str(e)}")
         
         meeting.status = 'completed'
         db.session.commit()
@@ -296,7 +299,6 @@ class MeetingService:
         """
         from models.document import Document
         import os
-        import logging
         
         query = Meeting.query.filter_by(id=meeting_id)
         if user_id:
@@ -311,10 +313,9 @@ class MeetingService:
             if meeting.task_id and meeting.status == 'running':
                 self.tytingwu_service.stop_task(meeting.task_id)
         except Exception as e:
-            logging.warning(f"停止任务失败: {str(e)}")
+            logger.warning(f"停止任务失败: {str(e)}")
         
         # 删除关联的会议-教师关联记录
-        from models.meeting_teacher import MeetingTeacher
         meeting_teachers = MeetingTeacher.query.filter_by(meeting_id=meeting_id).all()
         for mt in meeting_teachers:
             db.session.delete(mt)
@@ -326,9 +327,9 @@ class MeetingService:
             try:
                 if doc.file_path and os.path.exists(doc.file_path):
                     os.remove(doc.file_path)
-                    logging.info(f"已删除文件: {doc.file_path}")
+                    logger.info(f"已删除文件: {doc.file_path}")
             except Exception as e:
-                logging.warning(f"删除文件失败: {doc.file_path}, 错误: {str(e)}")
+                logger.warning(f"删除文件失败: {doc.file_path}, 错误: {str(e)}")
             
             # 删除数据库记录
             db.session.delete(doc)
@@ -337,409 +338,4 @@ class MeetingService:
         db.session.delete(meeting)
         db.session.commit()
         
-        logging.info(f"会议已删除: {meeting_id}")
-    
-    def update_transcript(self, meeting_id: str, transcript: str) -> Dict:
-        """
-        更新转写文本（旧接口，保持兼容）
-        
-        Args:
-            meeting_id: 会议ID
-            transcript: 转写文本
-        
-        Returns:
-            更新后的会议信息
-        """
-        meeting = Meeting.query.filter_by(id=meeting_id).first()
-        if not meeting:
-            raise ValueError(f"会议不存在: {meeting_id}")
-        
-        # 创建或更新转写记录
-        transcript_record = Transcript.query.filter_by(meeting_id=meeting_id).order_by(
-            Transcript.created_at.desc()
-        ).first()
-        
-        if transcript_record:
-            transcript_record.text = transcript
-        else:
-            transcript_record = Transcript(
-                meeting_id=meeting_id,
-                text=transcript
-            )
-            db.session.add(transcript_record)
-        
-        db.session.commit()
-        
-        return meeting.to_dict(include_transcripts=True)
-    
-    def append_message(self, meeting_id: str, message: Dict) -> Dict:
-        """
-        追加单条消息到转写记录（JSONL格式）
-        
-        Args:
-            meeting_id: 会议ID
-            message: 消息字典，包含 name, time, type, content
-        
-        Returns:
-            更新后的会议信息
-        """
-        import json
-        
-        meeting = Meeting.query.filter_by(id=meeting_id).first()
-        if not meeting:
-            raise ValueError(f"会议不存在: {meeting_id}")
-        
-        # 验证消息格式
-        required_fields = ['name', 'time', 'type', 'content']
-        for field in required_fields:
-            if field not in message:
-                raise ValueError(f"消息缺少必需字段: {field}")
-        
-        # 获取或创建转写记录
-        transcript_record = Transcript.query.filter_by(meeting_id=meeting_id).order_by(
-            Transcript.created_at.desc()
-        ).first()
-        
-        if not transcript_record:
-            # 创建新的转写记录
-            transcript_record = Transcript(
-                meeting_id=meeting_id,
-                text=''
-            )
-            db.session.add(transcript_record)
-        
-        # 将消息转换为 JSON 字符串（单行，类似 JSONL 格式）
-        message_json = json.dumps(message, ensure_ascii=False)
-        
-        # 追加到现有文本（每行一条 JSON）
-        if transcript_record.text:
-            transcript_record.text += '\n' + message_json
-        else:
-            transcript_record.text = message_json
-        
-        db.session.commit()
-        
-        return meeting.to_dict(include_transcripts=True)
-    
-    def generate_summary(self, meeting_id: str, summary_type: str = 'brief') -> Dict:
-        """
-        生成会议摘要（通过查询任务信息获取摘要结果）
-        
-        参考文档：https://help.aliyun.com/zh/tingwu/large-model-summary
-        
-        Args:
-            meeting_id: 会议ID
-            summary_type: 摘要类型（'brief' 或 'detailed'，实际从任务信息中获取）
-        
-        Returns:
-            更新后的会议信息
-        """
-        meeting = Meeting.query.filter_by(id=meeting_id).first()
-        if not meeting:
-            raise ValueError(f"会议不存在: {meeting_id}")
-        
-        if not meeting.task_id:
-            raise ValueError("会议没有关联的通义听悟任务，无法获取摘要")
-        
-        # 查询任务信息（包含摘要结果）
-        task_info = self.tytingwu_service.get_task_info(meeting.task_id)
-        
-        if task_info.get('Code') != '0':
-            raise ValueError(f"查询任务信息失败: {task_info.get('Message', '未知错误')}")
-        
-        task_data = task_info.get('Data', {})
-        summarization = task_data.get('Summarization', {})
-        meeting_assistance = task_data.get('MeetingAssistance', {})
-        
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.info(f'从任务数据中提取摘要: summarization={bool(summarization)}, meeting_assistance={bool(meeting_assistance)}')
-        if summarization:
-            logger.info(f'摘要数据结构: {list(summarization.keys())}')
-        if meeting_assistance:
-            logger.info(f'要点提炼数据结构: {list(meeting_assistance.keys())}')
-        
-        if not summarization and not meeting_assistance:
-            raise ValueError("任务未包含摘要或要点提炼结果，请确保创建任务时启用了相关功能")
-        
-        # 解析摘要结果
-        summary_result = {
-            'paragraph_summary': summarization.get('ParagraphSummary', '') if summarization else '',  # 全文摘要
-            'paragraph_title': summarization.get('ParagraphTitle', '') if summarization else '',  # 全文摘要标题
-            'conversational_summary': summarization.get('ConversationalSummary', []) if summarization else [],  # 发言总结
-            'questions_answering_summary': summarization.get('QuestionsAnsweringSummary', []) if summarization else [],  # 问答回顾
-            'mind_map_summary': summarization.get('MindMapSummary', []) if summarization else [],  # 思维导图
-        }
-        
-        # 解析要点提炼结果
-        if meeting_assistance:
-            summary_result['meeting_assistance'] = {
-                'keywords': meeting_assistance.get('Keywords', []),  # 关键词
-                'key_sentences': meeting_assistance.get('KeySentences', []),  # 重点内容（关键句）
-                'actions': meeting_assistance.get('Actions', []),  # 待办事项
-            }
-        else:
-            summary_result['meeting_assistance'] = {
-                'keywords': [],
-                'key_sentences': [],
-                'actions': [],
-            }
-        
-        logger.info(f'解析后的摘要结果: paragraph_summary长度={len(summary_result["paragraph_summary"])}, conversational_summary数量={len(summary_result["conversational_summary"])}, keywords数量={len(summary_result["meeting_assistance"]["keywords"])}')
-        
-        # 获取或创建转写记录
-        transcript_record = Transcript.query.filter_by(meeting_id=meeting_id).order_by(
-            Transcript.created_at.desc()
-        ).first()
-        
-        if not transcript_record:
-            # 如果没有转写记录，创建一个
-            # 尝试从任务数据中获取转写文本
-            transcription_text = ''
-            if task_data.get('Transcription'):
-                # 如果 Transcription 是 URL，需要下载
-                if isinstance(task_data.get('Transcription'), str) and task_data.get('Transcription').startswith('http'):
-                    transcription_text = f'转写文本URL: {task_data.get("Transcription")}'
-                elif isinstance(task_data.get('Transcription'), dict):
-                    transcription_text = task_data.get('Transcription', {}).get('Text', '') or ''
-            
-            transcript_record = Transcript(
-                meeting_id=meeting_id,
-                text=transcription_text
-            )
-            db.session.add(transcript_record)
-        
-        # 更新转写记录的摘要（包含摘要和要点提炼结果）
-        transcript_record.summary_dict = summary_result
-        db.session.commit()
-        
-        return meeting.to_dict(include_transcripts=True)
-    
-    def save_summary_from_task_data(self, meeting_id: str, task_data: Dict) -> Dict:
-        """
-        从任务数据中保存摘要结果
-        
-        Args:
-            meeting_id: 会议ID
-            task_data: 任务数据（包含 Summarization 和 MeetingAssistance）
-        
-        Returns:
-            更新后的会议信息
-        """
-        import logging
-        logger = logging.getLogger(__name__)
-        
-        meeting = Meeting.query.filter_by(id=meeting_id).first()
-        if not meeting:
-            raise ValueError(f"会议不存在: {meeting_id}")
-        
-        summarization = task_data.get('Summarization', {})
-        meeting_assistance = task_data.get('MeetingAssistance', {})
-        
-        # 解析摘要结果
-        summary_result = {
-            'paragraph_summary': summarization.get('ParagraphSummary', '') if summarization else '',
-            'paragraph_title': summarization.get('ParagraphTitle', '') if summarization else '',
-            'conversational_summary': summarization.get('ConversationalSummary', []) if summarization else [],
-            'questions_answering_summary': summarization.get('QuestionsAnsweringSummary', []) if summarization else [],
-            'mind_map_summary': summarization.get('MindMapSummary', []) if summarization else [],
-            'mp3_url': task_data.get('mp3_url') or task_data.get('OutputMp3Path'),  # 保存 MP3 URL
-        }
-        
-        # 解析要点提炼结果
-        if meeting_assistance:
-            summary_result['meeting_assistance'] = {
-                'keywords': meeting_assistance.get('Keywords', []),
-                'key_sentences': meeting_assistance.get('KeySentences', []),
-                'actions': meeting_assistance.get('Actions', []),
-            }
-        else:
-            summary_result['meeting_assistance'] = {
-                'keywords': [],
-                'key_sentences': [],
-                'actions': [],
-            }
-        
-        # 获取或创建转写记录
-        transcript_record = Transcript.query.filter_by(meeting_id=meeting_id).order_by(
-            Transcript.created_at.desc()
-        ).first()
-        
-        if not transcript_record:
-            transcript_record = Transcript(
-                meeting_id=meeting_id,
-                text=''
-            )
-            db.session.add(transcript_record)
-        
-        # 更新转写记录的摘要
-        transcript_record.summary_dict = summary_result
-        db.session.commit()
-        
-        return meeting.to_dict(include_transcripts=True)
-    
-    # download_and_save_mp3 方法已删除，不再需要下载保存 MP3 文件
-    # 直接使用 OutputMp3Path URL 即可
-    
-    def extract_key_points(self, meeting_id: str) -> Dict:
-        """
-        提取会议要点
-        
-        Args:
-            meeting_id: 会议ID
-        
-        Returns:
-            更新后的会议信息
-        """
-        meeting = Meeting.query.filter_by(id=meeting_id).first()
-        if not meeting:
-            raise ValueError(f"会议不存在: {meeting_id}")
-        
-        # 获取最新转写文本
-        transcript_record = Transcript.query.filter_by(meeting_id=meeting_id).order_by(
-            Transcript.created_at.desc()
-        ).first()
-        
-        if not transcript_record or not transcript_record.text:
-            raise ValueError("会议转写文本为空，无法提取要点")
-        
-        # 提取要点
-        key_points = self.tytingwu_service.extract_key_points(transcript_record.text)
-        
-        # 更新转写记录的要点
-        transcript_record.key_points_list = key_points
-        db.session.commit()
-        
-        return meeting.to_dict(include_transcripts=True)
-    
-    def generate_summary_document(self, meeting_id: str, user_id: Optional[int] = None) -> io.BytesIO:
-        """
-        生成会议总结Word文档
-        
-        Args:
-            meeting_id: 会议ID
-            user_id: 用户ID（用于权限检查）
-        
-        Returns:
-            Word文档的字节流
-        """
-        if not DOCX_AVAILABLE:
-            raise ValueError("python-docx 未安装，无法生成Word文档")
-        
-        # 获取会议信息
-        meeting = self.get_meeting(meeting_id, user_id=user_id)
-        if not meeting:
-            raise ValueError(f"会议不存在: {meeting_id}")
-        
-        # 获取最新转写记录和摘要
-        transcript_record = Transcript.query.filter_by(meeting_id=meeting_id).order_by(
-            Transcript.created_at.desc()
-        ).first()
-        
-        if not transcript_record or not transcript_record.summary_dict:
-            raise ValueError("会议总结不存在，请先生成会议总结")
-        
-        summary_data = transcript_record.summary_dict
-        
-        # 创建Word文档
-        doc = DocxDocument()
-        
-        # 设置文档样式
-        style = doc.styles['Normal']
-        font = style.font
-        font.name = '微软雅黑'
-        font.size = Pt(11)
-        
-        # 标题
-        title = doc.add_heading(meeting.get('name', '会议总结'), 0)
-        title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        
-        # 会议基本信息
-        doc.add_paragraph().add_run('会议基本信息').bold = True
-        info_para = doc.add_paragraph()
-        info_items = []
-        if meeting.get('subject'):
-            info_items.append(f"学科：{meeting['subject']}")
-        if meeting.get('grade'):
-            info_items.append(f"年级：{meeting['grade']}")
-        if meeting.get('lesson_type'):
-            info_items.append(f"备课类型：{meeting['lesson_type']}")
-        if meeting.get('created_at'):
-            info_items.append(f"创建时间：{meeting['created_at']}")
-        info_para.add_run(' | '.join(info_items) if info_items else '无')
-        doc.add_paragraph()  # 空行
-        
-        # 全文摘要
-        if summary_data.get('paragraph_summary') or summary_data.get('summary'):
-            doc.add_paragraph().add_run('一、全文摘要').bold = True
-            summary_text = summary_data.get('paragraph_summary') or summary_data.get('summary', '')
-            doc.add_paragraph(summary_text)
-            doc.add_paragraph()  # 空行
-        
-        # 发言总结
-        if summary_data.get('conversational_summary') and len(summary_data['conversational_summary']) > 0:
-            doc.add_paragraph().add_run('二、发言总结').bold = True
-            for idx, speaker in enumerate(summary_data['conversational_summary'], 1):
-                speaker_para = doc.add_paragraph()
-                speaker_name = speaker.get('SpeakerName') or speaker.get('SpeakerId') or f'发言人{idx}'
-                speaker_para.add_run(f"{idx}. {speaker_name}").bold = True
-                if speaker.get('Summary'):
-                    doc.add_paragraph(speaker['Summary'])
-            doc.add_paragraph()  # 空行
-        
-        # 问答回顾
-        if summary_data.get('questions_answering_summary') and len(summary_data['questions_answering_summary']) > 0:
-            doc.add_paragraph().add_run('三、问答回顾').bold = True
-            for idx, qa in enumerate(summary_data['questions_answering_summary'], 1):
-                qa_para = doc.add_paragraph()
-                qa_para.add_run(f"{idx}. 问题：").bold = True
-                if qa.get('Question'):
-                    doc.add_paragraph(qa['Question'])
-                qa_para = doc.add_paragraph()
-                qa_para.add_run("   回答：").bold = True
-                if qa.get('Answer'):
-                    doc.add_paragraph(qa['Answer'])
-            doc.add_paragraph()  # 空行
-        
-        # 要点提炼
-        if summary_data.get('meeting_assistance'):
-            assistance = summary_data['meeting_assistance']
-            doc.add_paragraph().add_run('四、要点提炼').bold = True
-            
-            # 关键词
-            if assistance.get('keywords') and len(assistance['keywords']) > 0:
-                keywords_para = doc.add_paragraph()
-                keywords_para.add_run('关键词：').bold = True
-                keywords_para.add_run('、'.join(assistance['keywords']))
-            
-            # 关键句
-            if assistance.get('key_sentences') and len(assistance['key_sentences']) > 0:
-                doc.add_paragraph().add_run('关键句：').bold = True
-                for idx, sentence in enumerate(assistance['key_sentences'], 1):
-                    sentence_text = sentence.get('Text', '')
-                    if sentence_text:
-                        doc.add_paragraph(f"{idx}. {sentence_text}")
-            
-            # 待办事项
-            if assistance.get('actions') and len(assistance['actions']) > 0:
-                doc.add_paragraph().add_run('待办事项：').bold = True
-                for idx, action in enumerate(assistance['actions'], 1):
-                    action_text = action.get('Text', '')
-                    if action_text:
-                        doc.add_paragraph(f"{idx}. {action_text}")
-            
-            doc.add_paragraph()  # 空行
-        
-        # 思维导图（如果有）
-        if summary_data.get('mind_map_summary') and len(summary_data['mind_map_summary']) > 0:
-            doc.add_paragraph().add_run('五、思维导图').bold = True
-            doc.add_paragraph('（思维导图结构请参考系统界面）')
-            doc.add_paragraph()  # 空行
-        
-        # 将文档保存到内存
-        doc_bytes = io.BytesIO()
-        doc.save(doc_bytes)
-        doc_bytes.seek(0)
-        
-        return doc_bytes
-
+        logger.info(f"会议已删除: {meeting_id}")

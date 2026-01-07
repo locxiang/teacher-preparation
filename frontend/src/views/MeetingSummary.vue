@@ -1103,6 +1103,8 @@ const generateSummary = async () => {
                     const latestTranscript = parsed.data.transcripts[parsed.data.transcripts.length - 1]
                     if (latestTranscript.summary) {
                       summaryData.value = latestTranscript.summary
+                      // 调试日志：检查思维导图数据
+                      console.log('摘要数据已更新，思维导图数据:', summaryData.value?.mind_map_summary)
                     }
                   } else if (parsed.data.summary) {
                     // 兼容旧格式
@@ -1115,6 +1117,8 @@ const generateSummary = async () => {
                     } else {
                       summaryData.value = parsed.data.summary
                     }
+                    // 调试日志：检查思维导图数据
+                    console.log('摘要数据已更新（旧格式），思维导图数据:', summaryData.value?.mind_map_summary)
                   }
 
                   // 从 summaryData 中获取音频 URL
@@ -1144,6 +1148,13 @@ const generateSummary = async () => {
 
                 // 关闭生成状态
                 isGenerating.value = false
+                
+                // 如果摘要数据已更新，重新渲染思维导图
+                if (summaryData.value?.mind_map_summary && summaryData.value.mind_map_summary.length > 0) {
+                  // 使用 nextTick 确保 DOM 已更新
+                  await nextTick()
+                  renderMermaidMindmap()
+                }
                 break
             }
           } catch (parseError) {
@@ -1179,6 +1190,17 @@ const generateSummary = async () => {
 // 重新生成摘要
 const regenerateSummary = async () => {
   isRegenerating.value = true
+  // 清除旧的摘要数据，确保重新生成时显示新数据
+  summaryData.value = null
+  // 清空思维导图容器
+  if (mermaidRef.value) {
+    mermaidRef.value.innerHTML = ''
+  }
+  // 清空错误消息
+  errorMessage.value = ''
+  errorBannerMessage.value = ''
+  showErrorBanner.value = false
+  // 重新生成摘要
   await generateSummary()
   isRegenerating.value = false
 }
@@ -1238,13 +1260,17 @@ const renderMermaidMindmap = async () => {
 }
 
 // 监听思维导图数据变化，自动渲染
-watch(() => mindMapMermaidSyntax.value, () => {
-  if (mindMapMermaidSyntax.value) {
+watch(() => mindMapMermaidSyntax.value, (newValue) => {
+  console.log('思维导图语法已更新:', newValue ? '有数据' : '无数据')
+  if (newValue) {
     nextTick(() => {
       renderMermaidMindmap()
     })
+  } else if (mermaidRef.value) {
+    // 如果没有数据，清空容器
+    mermaidRef.value.innerHTML = ''
   }
-})
+}, { immediate: true })
 
 const participants = computed<Participant[]>(() => {
   const speakerCounts: Record<string, number> = {}
@@ -1268,21 +1294,8 @@ const participants = computed<Participant[]>(() => {
     .sort((a, b) => b.count - a.count)
 })
 
-// 参与人数：从消息中统计不同的说话人，如果没有消息或说话人都是"未知"，则从会议教师列表统计
+// 参与人数：直接使用会议创建时选择的教师数量
 const participantCount = computed(() => {
-  const speakerSet = new Set<string>()
-  messages.value.forEach(msg => {
-    // 统计所有有说话人的消息（包括"未知"）
-    if (msg.speaker) {
-      speakerSet.add(msg.speaker)
-    }
-  })
-  // 如果统计到的说话人都是"未知"，或者没有消息，使用会议教师数量
-  const validSpeakers = Array.from(speakerSet).filter(s => s !== '未知')
-  if (validSpeakers.length > 0) {
-    return validSpeakers.length
-  }
-  // 如果没有有效的说话人，使用会议教师数量
   return meeting.value?.teachers?.length || 0
 })
 

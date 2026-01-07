@@ -423,9 +423,59 @@ const handleSubmit = async (e: Event) => {
   }
 }
 
-onMounted(() => {
-  // 页面加载时预加载教师列表
-  loadTeachers()
+onMounted(async () => {
+  // 从 sessionStorage 恢复表单数据（如果存在）
+  const savedFormData = sessionStorage.getItem('meetingFormData')
+  if (savedFormData) {
+    try {
+      const formData = JSON.parse(savedFormData)
+      
+      // 回显基本信息
+      if (formData.name) meetingName.value = formData.name
+      if (formData.subject) subject.value = formData.subject
+      if (formData.grade) grade.value = formData.grade
+      if (formData.lesson_type) lessonType.value = formData.lesson_type
+      if (formData.description) topic.value = formData.description
+    } catch (error) {
+      console.error('恢复表单数据失败:', error)
+      // 如果解析失败，清除无效数据
+      sessionStorage.removeItem('meetingFormData')
+    }
+  }
+  
+  // 加载教师列表（在恢复基本信息之后）
+  await loadTeachers()
+  
+  // 在教师列表加载完成后，恢复教师选择
+  if (savedFormData) {
+    try {
+      const formData = JSON.parse(savedFormData)
+      
+      // 回显教师选择（需要等待教师列表加载完成）
+      if (formData.teachers && Array.isArray(formData.teachers) && formData.teachers.length > 0) {
+        // 根据教师ID从可用教师列表中匹配
+        const teacherIds = formData.teachers.map((t: Teacher) => t.id)
+        selectedTeachers.value = availableTeachers.value.filter(teacher => 
+          teacherIds.includes(teacher.id)
+        )
+        
+        // 如果匹配到的教师数量与保存的不一致，使用保存的教师数据（可能包含完整信息）
+        if (selectedTeachers.value.length !== formData.teachers.length) {
+          selectedTeachers.value = formData.teachers
+        }
+      }
+      
+      // 回显主持人选择
+      if (formData.hostTeacherId) {
+        // 确保主持人ID在已选择的教师中
+        if (selectedTeachers.value.some(t => t.id === formData.hostTeacherId)) {
+          hostTeacherId.value = formData.hostTeacherId
+        }
+      }
+    } catch (error) {
+      console.error('恢复教师选择失败:', error)
+    }
+  }
 })
 </script>
 

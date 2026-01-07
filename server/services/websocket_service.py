@@ -8,6 +8,7 @@ import time
 from typing import Dict, Optional
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from services.meeting_service import MeetingService
+from services.meeting_transcript_service import MeetingTranscriptService
 from services.tytingwu_websocket import WebSocketManager, TyingWuWebSocketClient
 
 logger = logging.getLogger(__name__)
@@ -15,6 +16,7 @@ logger = logging.getLogger(__name__)
 # 全局SocketIO实例（将在app.py中初始化）
 socketio = None
 meeting_service = MeetingService()
+transcript_service = MeetingTranscriptService()
 # 通义听悟WebSocket连接管理器
 ws_manager = WebSocketManager()
 
@@ -265,7 +267,7 @@ def register_handlers(sio):
                     if text:
                         # 更新数据库（Demo场景允许失败）
                         try:
-                            meeting_service.update_transcript(meeting_id, text)
+                            transcript_service.update_transcript(meeting_id, text)
                         except Exception as e:
                             # Demo场景下，如果会议不存在，允许跳过数据库更新
                             if not (meeting_id.startswith('mock_task_') or 'mock' in meeting_id.lower()):
@@ -414,7 +416,7 @@ def register_handlers(sio):
                 return
             
             # 更新会议转写文本
-            meeting = meeting_service.update_transcript(meeting_id, transcript_text)
+            meeting = transcript_service.update_transcript(meeting_id, transcript_text)
             
             # 广播给房间内的所有客户端
             sio.emit('transcript_update', {

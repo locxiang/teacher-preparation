@@ -4,6 +4,9 @@
 from flask import Blueprint, request, jsonify, Response, send_file
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from services.meeting_service import MeetingService
+from services.meeting_transcript_service import MeetingTranscriptService
+from services.meeting_summary_service import MeetingSummaryService
+from services.meeting_document_service import MeetingDocumentService
 from services.tytingwu_service import TyingWuService
 import logging
 import json
@@ -12,6 +15,9 @@ from datetime import datetime
 
 meeting_bp = Blueprint('meeting', __name__)
 meeting_service = MeetingService()
+transcript_service = MeetingTranscriptService()
+summary_service = MeetingSummaryService()
+document_service = MeetingDocumentService(meeting_service)
 tytingwu_service = TyingWuService()
 logger = logging.getLogger(__name__)
 
@@ -194,7 +200,7 @@ def update_transcript(meeting_id):
                 'type': data.get('type'),
                 'content': data.get('content')
             }
-            meeting = meeting_service.append_message(meeting_id, message)
+            meeting = transcript_service.append_message(meeting_id, message)
             
             return jsonify({
                 'success': True,
@@ -204,7 +210,7 @@ def update_transcript(meeting_id):
         else:
             # 旧格式：更新整个转写文本（兼容）
             transcript = data.get('transcript', '')
-            meeting = meeting_service.update_transcript(meeting_id, transcript)
+            meeting = transcript_service.update_transcript(meeting_id, transcript)
             
             return jsonify({
                 'success': True,
@@ -363,7 +369,7 @@ def generate_summary_stream(meeting_id):
                         yield f"data: {json.dumps({'type': 'status', 'message': '正在保存摘要结果...'}, ensure_ascii=False)}\n\n"
                         # 使用应用上下文包裹数据库操作
                         with app.app_context():
-                            meeting_result = meeting_service.save_summary_from_task_data(meeting_id, task_data)
+                            meeting_result = summary_service.save_summary_from_task_data(meeting_id, task_data)
                         
                         yield f"data: {json.dumps({'type': 'complete', 'data': meeting_result, 'message': '摘要生成完成'}, ensure_ascii=False)}\n\n"
                         break
@@ -484,7 +490,7 @@ def download_summary(meeting_id):
             }), 404
         
         # 生成Word文档
-        doc_bytes = meeting_service.generate_summary_document(meeting_id, user_id=user_id)
+        doc_bytes = document_service.generate_summary_document(meeting_id, user_id=user_id)
         
         # 生成文件名
         meeting_name = meeting.get('name', '会议总结')
