@@ -5,8 +5,12 @@
       <div class="max-w-[1600px] mx-auto px-8 py-4">
         <div class="flex items-center justify-between">
           <div>
-            <h1 class="text-2xl font-semibold text-gray-900">个人中心</h1>
-            <p class="text-sm text-gray-500 mt-1">查看和管理您的账户信息</p>
+            <h1 class="text-2xl font-semibold text-gray-900">
+              个人中心
+            </h1>
+            <p class="text-sm text-gray-500 mt-1">
+              查看和管理您的账户信息
+            </p>
           </div>
         </div>
       </div>
@@ -16,22 +20,35 @@
     <div class="max-w-[1600px] mx-auto px-8 py-6">
       <div class="max-w-4xl mx-auto">
         <!-- 加载状态 -->
-        <div v-if="isLoading" class="bg-white border border-gray-200 rounded shadow-sm p-12 text-center">
-          <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-nanyu-600"></div>
-          <p class="mt-4 text-sm text-gray-600">加载中...</p>
+        <div
+          v-if="isLoading"
+          class="bg-white border border-gray-200 rounded shadow-sm p-12 text-center"
+        >
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-nanyu-600" />
+          <p class="mt-4 text-sm text-gray-600">
+            加载中...
+          </p>
         </div>
 
         <!-- 错误提示 -->
-        <div v-else-if="errorMessage" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">
+        <div
+          v-else-if="errorMessage"
+          class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm"
+        >
           {{ errorMessage }}
         </div>
 
         <!-- 用户信息 -->
-        <div v-else-if="user" class="space-y-5">
+        <div
+          v-else-if="user"
+          class="space-y-5"
+        >
           <!-- 基本信息卡片 -->
           <div class="bg-white border border-gray-200 rounded shadow-sm">
             <div class="px-6 py-5 border-b border-gray-200 bg-gray-50">
-              <h3 class="text-sm font-semibold text-gray-900">基本信息</h3>
+              <h3 class="text-sm font-semibold text-gray-900">
+                基本信息
+              </h3>
             </div>
             <div class="p-6">
               <div class="space-y-0 divide-y divide-gray-200">
@@ -57,8 +74,14 @@
                 <div class="flex items-center justify-between py-3">
                   <span class="text-sm font-medium text-gray-600">账户状态</span>
                   <span class="text-sm">
-                    <span v-if="user.is_active" class="px-2 py-1 bg-green-50 text-green-700 rounded text-xs font-medium">正常</span>
-                    <span v-else class="px-2 py-1 bg-red-50 text-red-700 rounded text-xs font-medium">已禁用</span>
+                    <span
+                      v-if="user.is_active"
+                      class="px-2 py-1 bg-green-50 text-green-700 rounded text-xs font-medium"
+                    >正常</span>
+                    <span
+                      v-else
+                      class="px-2 py-1 bg-red-50 text-red-700 rounded text-xs font-medium"
+                    >已禁用</span>
                   </span>
                 </div>
 
@@ -80,12 +103,14 @@
           <!-- 操作按钮 -->
           <div class="bg-white border border-gray-200 rounded shadow-sm">
             <div class="px-6 py-5 border-b border-gray-200 bg-gray-50">
-              <h3 class="text-sm font-semibold text-gray-900">账户操作</h3>
+              <h3 class="text-sm font-semibold text-gray-900">
+                账户操作
+              </h3>
             </div>
             <div class="p-6">
               <button
-                @click="handleLogout"
                 class="w-full px-4 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors font-medium"
+                @click="handleLogout"
               >
                 退出登录
               </button>

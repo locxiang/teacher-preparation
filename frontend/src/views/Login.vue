@@ -8,10 +8,15 @@
             南
           </div>
         </div>
-        <h1 class="text-2xl font-semibold text-gray-900">登录账户</h1>
+        <h1 class="text-2xl font-semibold text-gray-900">
+          登录账户
+        </h1>
         <p class="mt-2 text-sm text-gray-500">
           还没有账户？
-          <router-link to="/register" class="font-medium text-nanyu-600 hover:text-nanyu-700">
+          <router-link
+            to="/register"
+            class="font-medium text-nanyu-600 hover:text-nanyu-700"
+          >
             立即注册
           </router-link>
         </p>
@@ -20,17 +25,28 @@
       <!-- 登录表单 -->
       <div class="bg-white border border-gray-200 rounded shadow-sm">
         <div class="px-6 py-5 border-b border-gray-200 bg-gray-50">
-          <h2 class="text-sm font-semibold text-gray-900">登录信息</h2>
+          <h2 class="text-sm font-semibold text-gray-900">
+            登录信息
+          </h2>
         </div>
-        <form @submit.prevent="handleLogin" class="p-6 space-y-5">
+        <form
+          class="p-6 space-y-5"
+          @submit.prevent="handleLogin"
+        >
           <!-- 错误提示 -->
-          <div v-if="errorMessage" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">
+          <div
+            v-if="errorMessage"
+            class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm"
+          >
             {{ errorMessage }}
           </div>
 
           <!-- 用户名/邮箱 -->
           <div>
-            <label for="username" class="block text-sm font-medium text-gray-700 mb-1.5">
+            <label
+              for="username"
+              class="block text-sm font-medium text-gray-700 mb-1.5"
+            >
               用户名或邮箱
             </label>
             <input
@@ -41,12 +57,15 @@
               autocomplete="username"
               class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-nanyu-500 focus:border-transparent outline-none transition-all"
               placeholder="请输入用户名或邮箱"
-            />
+            >
           </div>
 
           <!-- 密码 -->
           <div>
-            <label for="password" class="block text-sm font-medium text-gray-700 mb-1.5">
+            <label
+              for="password"
+              class="block text-sm font-medium text-gray-700 mb-1.5"
+            >
               密码
             </label>
             <input
@@ -57,7 +76,7 @@
               autocomplete="current-password"
               class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-nanyu-500 focus:border-transparent outline-none transition-all"
               placeholder="请输入密码"
-            />
+            >
           </div>
 
           <!-- 记住我 -->
@@ -67,8 +86,11 @@
               v-model="rememberMe"
               type="checkbox"
               class="w-4 h-4 text-nanyu-600 border-gray-300 rounded focus:ring-nanyu-500"
-            />
-            <label for="remember-me" class="ml-2 block text-sm text-gray-700">
+            >
+            <label
+              for="remember-me"
+              class="ml-2 block text-sm text-gray-700"
+            >
               记住我
             </label>
           </div>
@@ -81,10 +103,29 @@
               class="w-full flex justify-center py-2 px-4 border border-transparent rounded text-sm font-medium text-white bg-nanyu-600 hover:bg-nanyu-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-nanyu-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <span v-if="!isLoading">登录</span>
-              <span v-else class="flex items-center">
-                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <span
+                v-else
+                class="flex items-center"
+              >
+                <svg
+                  class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  />
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
                 </svg>
                 登录中...
               </span>

@@ -24,10 +24,16 @@
               </h1>
               <p class="text-sm text-gray-500 mt-1">
                 {{ formatTime(new Date()) }}
-                <span v-if="taskInfo?.TaskId" class="ml-2 font-mono text-xs">
+                <span
+                  v-if="taskInfo?.TaskId"
+                  class="ml-2 font-mono text-xs"
+                >
                   Task ID: {{ taskInfo.TaskId.substring(0, 8) }}...
                 </span>
-                <span v-if="historyList.length > 0" class="ml-2">
+                <span
+                  v-if="historyList.length > 0"
+                  class="ml-2"
+                >
                   | {{ historyList.length }}条识别记录
                 </span>
               </p>
@@ -45,9 +51,9 @@
             <!-- 麦克风授权按钮 -->
             <button
               v-if="!hasMicrophonePermission && taskInfo?.MeetingJoinUrl"
-              @click="requestMicrophonePermission"
               :disabled="isRequestingPermission"
               class="px-3 py-1.5 text-xs bg-blue-50 text-blue-700 hover:bg-blue-100 rounded border border-blue-200 transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+              @click="requestMicrophonePermission"
             >
               <span class="mr-1">🎤</span>
               {{ isRequestingPermission ? '请求授权中...' : '授权麦克风' }}
@@ -56,7 +62,6 @@
             <!-- 开始/停止录音按钮 -->
             <button
               v-else-if="hasMicrophonePermission && taskInfo?.MeetingJoinUrl"
-              @click="toggleRecording"
               :disabled="status === 'init' || !taskInfo"
               :class="[
                 'px-3 py-1.5 text-xs rounded border transition-colors flex items-center',
@@ -65,6 +70,7 @@
                   : 'bg-green-50 text-green-700 hover:bg-green-100 border-green-200',
                 (status === 'init' || !taskInfo) ? 'opacity-50 cursor-not-allowed' : ''
               ]"
+              @click="toggleRecording"
             >
               <span class="mr-1">{{ status === 'ing' ? '⏸️' : '▶️' }}</span>
               {{ buttonText }}
@@ -79,7 +85,7 @@
                 :class="wsConnected ? 'bg-green-500' : 'bg-gray-400'"
                 class="w-2 h-2 rounded-full mr-1.5"
                 :style="wsConnected ? 'animation: pulse 1s infinite;' : ''"
-              ></span>
+              />
               {{ wsConnected ? '已连接' : '未连接' }}
             </div>
           </div>
@@ -96,36 +102,78 @@
             <!-- 任务配置卡片 -->
             <div class="bg-white border border-gray-200 rounded shadow-sm p-4">
               <h3 class="text-sm font-semibold text-gray-900 mb-3 flex items-center">
-                <svg class="w-4 h-4 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <svg
+                  class="w-4 h-4 mr-2 text-gray-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
                 </svg>
                 任务配置
               </h3>
 
               <!-- 任务信息显示 -->
-              <div v-if="taskInfo" class="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <div class="text-xs text-gray-600 mb-1 font-medium">任务ID:</div>
-                <div class="text-xs font-mono text-gray-800 break-all mb-2">{{ taskInfo.TaskId }}</div>
-                <div v-if="taskInfo.TaskStatus" class="mt-2">
-                  <div class="text-xs text-gray-600 mb-1 font-medium">任务状态:</div>
-                  <div class="text-xs font-medium text-green-700">{{ taskInfo.TaskStatus }}</div>
+              <div
+                v-if="taskInfo"
+                class="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg"
+              >
+                <div class="text-xs text-gray-600 mb-1 font-medium">
+                  任务ID:
+                </div>
+                <div class="text-xs font-mono text-gray-800 break-all mb-2">
+                  {{ taskInfo.TaskId }}
+                </div>
+                <div
+                  v-if="taskInfo.TaskStatus"
+                  class="mt-2"
+                >
+                  <div class="text-xs text-gray-600 mb-1 font-medium">
+                    任务状态:
+                  </div>
+                  <div class="text-xs font-medium text-green-700">
+                    {{ taskInfo.TaskStatus }}
+                  </div>
                 </div>
               </div>
 
               <!-- 创建任务表单 -->
-              <div v-if="!taskInfo" class="space-y-3">
+              <div
+                v-if="!taskInfo"
+                class="space-y-3"
+              >
                 <div>
                   <label class="block text-xs font-medium text-gray-700 mb-1">音频格式</label>
                   <select
                     v-model="createTaskParams.audio_format"
                     class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="pcm">PCM</option>
-                    <option value="opus">OPUS</option>
-                    <option value="aac">AAC</option>
-                    <option value="speex">SPEEX</option>
-                    <option value="mp3">MP3</option>
+                    <option value="pcm">
+                      PCM
+                    </option>
+                    <option value="opus">
+                      OPUS
+                    </option>
+                    <option value="aac">
+                      AAC
+                    </option>
+                    <option value="speex">
+                      SPEEX
+                    </option>
+                    <option value="mp3">
+                      MP3
+                    </option>
                   </select>
                 </div>
 
@@ -135,8 +183,12 @@
                     v-model="createTaskParams.sample_rate"
                     class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option :value="16000">16000 Hz</option>
-                    <option :value="8000">8000 Hz</option>
+                    <option :value="16000">
+                      16000 Hz
+                    </option>
+                    <option :value="8000">
+                      8000 Hz
+                    </option>
                   </select>
                 </div>
 
@@ -146,12 +198,24 @@
                     v-model="createTaskParams.source_language"
                     class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="cn">中文</option>
-                    <option value="en">英文</option>
-                    <option value="yue">粤语</option>
-                    <option value="ja">日语</option>
-                    <option value="ko">韩语</option>
-                    <option value="multilingual">多语种</option>
+                    <option value="cn">
+                      中文
+                    </option>
+                    <option value="en">
+                      英文
+                    </option>
+                    <option value="yue">
+                      粤语
+                    </option>
+                    <option value="ja">
+                      日语
+                    </option>
+                    <option value="ko">
+                      韩语
+                    </option>
+                    <option value="multilingual">
+                      多语种
+                    </option>
                   </select>
                 </div>
 
@@ -162,7 +226,7 @@
                     type="text"
                     placeholder="自定义任务标识"
                     class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                  >
                 </div>
 
                 <div class="space-y-1.5 pt-1">
@@ -171,7 +235,7 @@
                       v-model="createTaskParams.enable_summary"
                       type="checkbox"
                       class="mr-2"
-                    />
+                    >
                     <span class="text-gray-700">开启摘要</span>
                   </label>
                   <label class="flex items-center text-xs">
@@ -179,7 +243,7 @@
                       v-model="createTaskParams.enable_key_points"
                       type="checkbox"
                       class="mr-2"
-                    />
+                    >
                     <span class="text-gray-700">开启要点提炼</span>
                   </label>
                   <label class="flex items-center text-xs">
@@ -187,44 +251,64 @@
                       v-model="createTaskParams.enable_translation"
                       type="checkbox"
                       class="mr-2"
-                    />
+                    >
                     <span class="text-gray-700">开启翻译</span>
                   </label>
                 </div>
 
                 <button
-                  @click="createTask"
                   :disabled="isCreatingTask"
                   class="w-full py-2 rounded text-sm font-medium transition-all duration-300 flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  @click="createTask"
                 >
-                  <span v-if="isCreatingTask" class="mr-2">⏳</span>
-                  <span v-else class="mr-2">➕</span>
+                  <span
+                    v-if="isCreatingTask"
+                    class="mr-2"
+                  >⏳</span>
+                  <span
+                    v-else
+                    class="mr-2"
+                  >➕</span>
                   {{ isCreatingTask ? '创建中...' : '创建实时记录' }}
                 </button>
               </div>
 
               <!-- 停止任务按钮 -->
-              <div v-if="taskInfo" class="space-y-2">
+              <div
+                v-if="taskInfo"
+                class="space-y-2"
+              >
                 <button
-                  @click="stopTask"
                   :disabled="isStoppingTask"
                   class="w-full py-2 rounded text-sm font-medium transition-all duration-300 flex items-center justify-center bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  @click="stopTask"
                 >
-                  <span v-if="isStoppingTask" class="mr-2">⏳</span>
-                  <span v-else class="mr-2">⏹️</span>
+                  <span
+                    v-if="isStoppingTask"
+                    class="mr-2"
+                  >⏳</span>
+                  <span
+                    v-else
+                    class="mr-2"
+                  >⏹️</span>
                   {{ isStoppingTask ? '停止中...' : '停止实时记录' }}
                 </button>
                 <button
-                  @click="resetTask"
                   class="w-full py-1.5 rounded text-sm font-medium transition-all duration-300 flex items-center justify-center bg-gray-200 hover:bg-gray-300 text-gray-700"
+                  @click="resetTask"
                 >
                   重置
                 </button>
               </div>
 
               <!-- 错误信息 -->
-              <div v-if="errorMessage" class="mt-3 p-2 bg-red-50 border border-red-200 rounded">
-                <p class="text-xs text-red-600">{{ errorMessage }}</p>
+              <div
+                v-if="errorMessage"
+                class="mt-3 p-2 bg-red-50 border border-red-200 rounded"
+              >
+                <p class="text-xs text-red-600">
+                  {{ errorMessage }}
+                </p>
               </div>
             </div>
 
@@ -242,7 +326,7 @@
                   :key="index"
                   class="w-1 bg-blue-400 rounded-t transition-all duration-75"
                   :style="{ height: `${bar}%`, minHeight: '2px' }"
-                ></div>
+                />
               </div>
             </div>
           </div>
@@ -253,8 +337,18 @@
             <div class="bg-white border border-gray-200 rounded shadow-sm flex flex-col overflow-hidden mb-4 grow min-h-0">
               <div class="px-5 py-3 border-b border-gray-200 bg-gray-50 flex justify-between items-center shrink-0">
                 <h3 class="text-sm font-semibold text-gray-900 flex items-center">
-                  <svg class="w-4 h-4 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                  <svg
+                    class="w-4 h-4 mr-2 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                    />
                   </svg>
                   实时识别结果
                 </h3>
@@ -262,51 +356,97 @@
 
               <div class="grow overflow-y-auto p-4 space-y-3">
                 <!-- 临时识别结果 -->
-                <div v-if="resultTextTemp" class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div
+                  v-if="resultTextTemp"
+                  class="p-4 bg-blue-50 border border-blue-200 rounded-lg"
+                >
                   <div class="flex items-center mb-2">
                     <span class="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded">临时结果</span>
                     <span class="ml-2 text-xs text-gray-500">正在识别中...</span>
-                    <span v-if="currentSpeaker" class="ml-auto text-xs font-medium text-blue-700 bg-blue-200 px-2 py-1 rounded">
+                    <span
+                      v-if="currentSpeaker"
+                      class="ml-auto text-xs font-medium text-blue-700 bg-blue-200 px-2 py-1 rounded"
+                    >
                       {{ currentSpeaker }}
                     </span>
                   </div>
-                  <p class="text-gray-800 text-sm">{{ resultTextTemp }}</p>
+                  <p class="text-gray-800 text-sm">
+                    {{ resultTextTemp }}
+                  </p>
                 </div>
 
                 <!-- 最终识别结果 -->
-                <div v-if="resultText && !resultTextTemp" class="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div
+                  v-if="resultText && !resultTextTemp"
+                  class="p-4 bg-green-50 border border-green-200 rounded-lg"
+                >
                   <div class="flex items-center mb-2">
                     <span class="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded">最终结果</span>
-                    <span v-if="currentSpeaker" class="ml-auto text-xs font-medium text-green-700 bg-green-200 px-2 py-1 rounded">
+                    <span
+                      v-if="currentSpeaker"
+                      class="ml-auto text-xs font-medium text-green-700 bg-green-200 px-2 py-1 rounded"
+                    >
                       {{ currentSpeaker }}
                     </span>
                   </div>
-                  <p class="text-gray-800 text-sm">{{ resultText }}</p>
+                  <p class="text-gray-800 text-sm">
+                    {{ resultText }}
+                  </p>
                 </div>
 
                 <!-- 空状态 -->
-                <div v-if="!resultText && !resultTextTemp" class="text-center py-12 text-gray-400">
-                  <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                <div
+                  v-if="!resultText && !resultTextTemp"
+                  class="text-center py-12 text-gray-400"
+                >
+                  <svg
+                    class="w-12 h-12 mx-auto mb-3 text-gray-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                    />
                   </svg>
-                  <p class="text-sm mb-1">暂无识别结果</p>
-                  <p class="text-xs">开始录音后，识别结果将显示在这里</p>
+                  <p class="text-sm mb-1">
+                    暂无识别结果
+                  </p>
+                  <p class="text-xs">
+                    开始录音后，识别结果将显示在这里
+                  </p>
                 </div>
               </div>
             </div>
 
             <!-- 识别历史记录 -->
-            <div class="bg-white border border-gray-200 rounded shadow-sm flex flex-col overflow-hidden mb-4" style="max-height: 300px;">
+            <div
+              class="bg-white border border-gray-200 rounded shadow-sm flex flex-col overflow-hidden mb-4"
+              style="max-height: 300px;"
+            >
               <div class="px-5 py-3 border-b border-gray-200 bg-gray-50 flex justify-between items-center shrink-0">
                 <h3 class="text-sm font-semibold text-gray-900 flex items-center">
-                  <svg class="w-4 h-4 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <svg
+                    class="w-4 h-4 mr-2 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                   识别历史
                 </h3>
                 <button
-                  @click="clearHistory"
                   class="text-xs text-gray-600 hover:text-gray-800 px-2 py-1 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+                  @click="clearHistory"
                 >
                   清空记录
                 </button>
@@ -320,15 +460,25 @@
                 >
                   <div class="flex items-center justify-between mb-1.5">
                     <span class="text-xs text-gray-500">{{ formatTimeForHistory(item.timestamp) }}</span>
-                    <span v-if="item.speaker" class="text-xs font-medium text-purple-600 bg-purple-100 px-2 py-0.5 rounded">
+                    <span
+                      v-if="item.speaker"
+                      class="text-xs font-medium text-purple-600 bg-purple-100 px-2 py-0.5 rounded"
+                    >
                       {{ item.speaker }}
                     </span>
                   </div>
-                  <p class="text-sm text-gray-800">{{ item.text }}</p>
+                  <p class="text-sm text-gray-800">
+                    {{ item.text }}
+                  </p>
                 </div>
 
-                <div v-if="historyList.length === 0" class="text-center py-6 text-gray-400">
-                  <p class="text-xs">暂无历史记录</p>
+                <div
+                  v-if="historyList.length === 0"
+                  class="text-center py-6 text-gray-400"
+                >
+                  <p class="text-xs">
+                    暂无历史记录
+                  </p>
                 </div>
               </div>
             </div>
@@ -338,8 +488,18 @@
               <div class="px-5 py-3 border-b border-gray-200 bg-gray-50 flex justify-between items-center shrink-0">
                 <div class="flex items-center gap-3">
                   <h3 class="text-sm font-semibold text-gray-900 flex items-center">
-                    <svg class="w-4 h-4 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    <svg
+                      class="w-4 h-4 mr-2 text-gray-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
                     </svg>
                     WebSocket消息调试
                   </h3>
@@ -348,8 +508,8 @@
                   </span>
                 </div>
                 <button
-                  @click="clearWsMessages"
                   class="text-xs text-gray-600 hover:text-gray-800 px-2 py-1 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+                  @click="clearWsMessages"
                 >
                   清空消息
                 </button>
@@ -372,7 +532,10 @@
                     <div class="flex items-center justify-between mb-1.5">
                       <div class="flex items-center gap-2 flex-1 min-w-0">
                         <span class="text-xs font-mono text-gray-600 whitespace-nowrap">{{ formatTime(msg.timestamp) }}</span>
-                        <span class="text-xs font-semibold px-1.5 py-0.5 rounded whitespace-nowrap" :class="getMessageTypeBadgeClass(msg.type)">
+                        <span
+                          class="text-xs font-semibold px-1.5 py-0.5 rounded whitespace-nowrap"
+                          :class="getMessageTypeBadgeClass(msg.type)"
+                        >
                           {{ getMessageTypeLabel(msg.type) }}
                         </span>
                       </div>
@@ -382,7 +545,10 @@
                     </div>
 
                     <!-- 第二行：识别文字（如果有） -->
-                    <div v-if="extractRecognizedText(msg.parsed)" class="mt-1.5 pt-1.5 border-t border-gray-300 border-opacity-50">
+                    <div
+                      v-if="extractRecognizedText(msg.parsed)"
+                      class="mt-1.5 pt-1.5 border-t border-gray-300 border-opacity-50"
+                    >
                       <div class="flex items-start gap-2">
                         <span class="text-xs font-semibold text-gray-600 whitespace-nowrap">识别文字:</span>
                         <span class="text-xs font-medium text-gray-900 flex-1">{{ extractRecognizedText(msg.parsed) }}</span>
@@ -391,17 +557,37 @@
                   </div>
 
                   <!-- 消息内容（可折叠） -->
-                  <div v-if="expandedMessages.has(index)" class="px-3 py-2 bg-gray-50 border-t">
+                  <div
+                    v-if="expandedMessages.has(index)"
+                    class="px-3 py-2 bg-gray-50 border-t"
+                  >
                     <pre class="text-xs text-gray-800 overflow-x-auto whitespace-pre-wrap wrap-break-word font-mono bg-white p-2 rounded border">{{ formatJson(msg.data, msg.parsed) }}</pre>
                   </div>
                 </div>
 
-                <div v-if="wsMessages.length === 0" class="text-center py-8 text-gray-400">
-                  <svg class="w-10 h-10 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <div
+                  v-if="wsMessages.length === 0"
+                  class="text-center py-8 text-gray-400"
+                >
+                  <svg
+                    class="w-10 h-10 mx-auto mb-2 text-gray-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
                   </svg>
-                  <p class="text-xs mb-1">暂无WebSocket消息</p>
-                  <p class="text-xs">开始录音后，WebSocket返回的消息将显示在这里</p>
+                  <p class="text-xs mb-1">
+                    暂无WebSocket消息
+                  </p>
+                  <p class="text-xs">
+                    开始录音后，WebSocket返回的消息将显示在这里
+                  </p>
                 </div>
               </div>
             </div>

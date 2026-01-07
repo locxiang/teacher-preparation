@@ -121,7 +121,7 @@ export async function createMeeting(
   grade?: string,
   lessonType?: string,
   teacherIds?: number[],
-  hostTeacherId?: number
+  hostTeacherId?: number,
 ): Promise<Meeting> {
   const response = await fetch(`${API_BASE_URL}/api/meetings`, {
     method: 'POST',

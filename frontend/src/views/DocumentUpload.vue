@@ -5,14 +5,31 @@
       <div class="max-w-[1600px] mx-auto px-8 py-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-4">
-            <router-link to="/meeting/create" class="text-gray-500 hover:text-gray-700 transition-colors">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            <router-link
+              to="/meeting/create"
+              class="text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
               </svg>
             </router-link>
             <div>
-              <h1 class="text-2xl font-semibold text-gray-900">上传备课资料</h1>
-              <p class="text-sm text-gray-500 mt-1">AI助手将分析这些资料，为您提供更精准的建议</p>
+              <h1 class="text-2xl font-semibold text-gray-900">
+                上传备课资料
+              </h1>
+              <p class="text-sm text-gray-500 mt-1">
+                AI助手将分析这些资料，为您提供更精准的建议
+              </p>
             </div>
           </div>
         </div>
@@ -25,17 +42,23 @@
         <!-- Steps -->
         <div class="mb-6 flex items-center justify-center space-x-4 text-sm font-medium">
           <div class="flex items-center text-gray-400">
-            <div class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center text-xs mr-2">1</div>
+            <div class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center text-xs mr-2">
+              1
+            </div>
             填写基本信息
           </div>
-          <div class="w-12 h-0.5 bg-gray-200"></div>
+          <div class="w-12 h-0.5 bg-gray-200" />
           <div class="flex items-center text-nanyu-600">
-            <div class="w-6 h-6 rounded-full bg-nanyu-600 text-white flex items-center justify-center text-xs mr-2">2</div>
+            <div class="w-6 h-6 rounded-full bg-nanyu-600 text-white flex items-center justify-center text-xs mr-2">
+              2
+            </div>
             上传资料
           </div>
-          <div class="w-12 h-0.5 bg-gray-200"></div>
+          <div class="w-12 h-0.5 bg-gray-200" />
           <div class="flex items-center text-gray-400">
-            <div class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center text-xs mr-2">3</div>
+            <div class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center text-xs mr-2">
+              3
+            </div>
             完成
           </div>
         </div>
@@ -43,35 +66,42 @@
         <!-- Upload Area -->
         <div class="bg-white border border-gray-200 rounded shadow-sm">
           <div class="px-6 py-5 border-b border-gray-200 bg-gray-50">
-            <h2 class="text-sm font-semibold text-gray-900">上传文件</h2>
+            <h2 class="text-sm font-semibold text-gray-900">
+              上传文件
+            </h2>
           </div>
           <div class="p-6">
             <div
               ref="uploadArea"
-              @click="!isUploading && triggerFileInput()"
-              @dragover.prevent="!isUploading && handleDragOver($event)"
-              @dragleave.prevent="!isUploading && handleDragLeave()"
-              @drop.prevent="!isUploading && handleDrop($event)"
               class="border-2 border-dashed rounded p-8 text-center transition-colors group"
               :class="isUploading 
                 ? 'border-nanyu-500 bg-nanyu-50 cursor-wait' 
                 : isDragging 
                   ? 'border-nanyu-500 bg-nanyu-50 cursor-pointer' 
                   : 'border-gray-300 hover:border-nanyu-500 hover:bg-nanyu-50 cursor-pointer'"
+              @click="!isUploading && triggerFileInput()"
+              @dragover.prevent="!isUploading && handleDragOver($event)"
+              @dragleave.prevent="!isUploading && handleDragLeave()"
+              @drop.prevent="!isUploading && handleDrop($event)"
             >
               <input
                 ref="fileInput"
                 type="file"
                 multiple
                 accept=".docx"
-                @change="handleFileSelect"
                 :disabled="isUploading"
                 class="hidden"
-              />
+                @change="handleFileSelect"
+              >
               <!-- 上传中状态 -->
-              <div v-if="isUploading" class="w-full">
-                <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-nanyu-600 mb-3"></div>
-                <h3 class="text-sm font-medium text-gray-700 mb-1">正在上传并解析文档...</h3>
+              <div
+                v-if="isUploading"
+                class="w-full"
+              >
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-nanyu-600 mb-3" />
+                <h3 class="text-sm font-medium text-gray-700 mb-1">
+                  正在上传并解析文档...
+                </h3>
                 <p class="text-gray-600 text-xs mb-2">
                   当前文件：{{ uploadingFile }}
                 </p>
@@ -82,17 +112,32 @@
                   <div
                     class="bg-nanyu-500 h-2 rounded-full transition-all duration-300"
                     :style="`width: ${(uploadProgress.current / uploadProgress.total) * 100}%`"
-                  ></div>
+                  />
                 </div>
-                <p class="text-gray-400 text-xs mt-3">文档上传后会立即进行AI解析，请稍候...</p>
+                <p class="text-gray-400 text-xs mt-3">
+                  文档上传后会立即进行AI解析，请稍候...
+                </p>
               </div>
               <!-- 正常状态 -->
               <template v-else>
-                <div class="text-5xl mb-3 text-gray-300 group-hover:text-nanyu-400 transition-colors">📄</div>
-                <h3 class="text-sm font-medium text-gray-700 mb-1">点击或拖拽文件到此处上传</h3>
-                <p class="text-gray-400 text-xs">仅支持 DOCX 格式（Word 文档），单个文件不超过 5MB</p>
-                <p class="text-gray-400 text-xs mt-1">文档将逐个上传并解析，请耐心等待</p>
-                <p v-if="uploadError" class="text-red-500 text-xs mt-2">{{ uploadError }}</p>
+                <div class="text-5xl mb-3 text-gray-300 group-hover:text-nanyu-400 transition-colors">
+                  📄
+                </div>
+                <h3 class="text-sm font-medium text-gray-700 mb-1">
+                  点击或拖拽文件到此处上传
+                </h3>
+                <p class="text-gray-400 text-xs">
+                  仅支持 DOCX 格式（Word 文档），单个文件不超过 5MB
+                </p>
+                <p class="text-gray-400 text-xs mt-1">
+                  文档将逐个上传并解析，请耐心等待
+                </p>
+                <p
+                  v-if="uploadError"
+                  class="text-red-500 text-xs mt-2"
+                >
+                  {{ uploadError }}
+                </p>
               </template>
             </div>
           </div>
@@ -104,17 +149,26 @@
                 已上传文件 ({{ documents.length }})
               </h3>
               <!-- 解析状态统计 -->
-              <div v-if="documents.length > 0" class="flex items-center space-x-4 text-xs">
+              <div
+                v-if="documents.length > 0"
+                class="flex items-center space-x-4 text-xs"
+              >
                 <span class="text-gray-600">
-                  <span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span>
+                  <span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-1" />
                   已完成: {{ completedCount }}
                 </span>
-                <span v-if="processingCount > 0" class="text-gray-600">
-                  <span class="inline-block w-2 h-2 rounded-full bg-yellow-500 mr-1 animate-pulse"></span>
+                <span
+                  v-if="processingCount > 0"
+                  class="text-gray-600"
+                >
+                  <span class="inline-block w-2 h-2 rounded-full bg-yellow-500 mr-1 animate-pulse" />
                   解析中: {{ processingCount }}
                 </span>
-                <span v-if="failedCount > 0" class="text-red-600">
-                  <span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-1"></span>
+                <span
+                  v-if="failedCount > 0"
+                  class="text-red-600"
+                >
+                  <span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-1" />
                   失败: {{ failedCount }}
                 </span>
               </div>
@@ -122,32 +176,60 @@
           </div>
           <div class="p-6">
             <!-- Creating Meeting -->
-            <div v-if="isCreatingMeeting" class="text-center py-8">
-              <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-nanyu-600"></div>
-              <p class="mt-4 text-sm text-gray-600">正在创建会议...</p>
+            <div
+              v-if="isCreatingMeeting"
+              class="text-center py-8"
+            >
+              <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-nanyu-600" />
+              <p class="mt-4 text-sm text-gray-600">
+                正在创建会议...
+              </p>
             </div>
 
             <!-- Loading -->
-            <div v-else-if="isLoading" class="text-center py-8">
-              <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-nanyu-600"></div>
-              <p class="mt-4 text-sm text-gray-600">加载中...</p>
+            <div
+              v-else-if="isLoading"
+              class="text-center py-8"
+            >
+              <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-nanyu-600" />
+              <p class="mt-4 text-sm text-gray-600">
+                加载中...
+              </p>
             </div>
 
             <!-- Empty State -->
-            <div v-else-if="documents.length === 0" class="text-center py-8 text-gray-400">
-              <svg class="w-12 h-12 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            <div
+              v-else-if="documents.length === 0"
+              class="text-center py-8 text-gray-400"
+            >
+              <svg
+                class="w-12 h-12 mx-auto mb-2 text-gray-300"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
               </svg>
-              <p class="text-sm">还没有上传文件</p>
+              <p class="text-sm">
+                还没有上传文件
+              </p>
             </div>
 
             <!-- File List -->
-            <div v-else class="space-y-3">
+            <div
+              v-else
+              class="space-y-3"
+            >
               <!-- 解析中的文档（优先显示） -->
               <template v-if="processingDocuments.length > 0">
                 <div class="mb-4">
                   <h4 class="text-xs font-semibold text-gray-500 mb-2 flex items-center">
-                    <span class="inline-block w-2 h-2 rounded-full bg-yellow-500 mr-2 animate-pulse"></span>
+                    <span class="inline-block w-2 h-2 rounded-full bg-yellow-500 mr-2 animate-pulse" />
                     正在解析中 ({{ processingDocuments.length }})
                   </h4>
                   <div class="space-y-2">
@@ -163,13 +245,15 @@
                         {{ getFileTypeIcon(doc.file_type) }}
                       </div>
                       <div class="grow min-w-0">
-                        <h4 class="text-sm font-medium text-gray-800 truncate">{{ doc.original_filename }}</h4>
+                        <h4 class="text-sm font-medium text-gray-800 truncate">
+                          {{ doc.original_filename }}
+                        </h4>
                         <div class="mt-2">
                           <div class="w-full bg-gray-200 rounded-full h-2">
                             <div
                               class="bg-yellow-500 h-2 rounded-full transition-all duration-300"
                               :style="`width: ${doc.parse_progress}%`"
-                            ></div>
+                            />
                           </div>
                           <p class="text-xs text-gray-600 mt-1 flex items-center">
                             <span class="inline-block animate-spin mr-1">⏳</span>
@@ -178,13 +262,19 @@
                         </div>
                       </div>
                       <button
-                        @click="handleDeleteDocument(doc.id)"
                         :disabled="isDeleting === doc.id"
                         class="text-gray-400 hover:text-red-500 p-1.5 transition-colors disabled:opacity-50 shrink-0"
                         title="删除文件"
+                        @click="handleDeleteDocument(doc.id)"
                       >
-                        <span v-if="isDeleting === doc.id" class="inline-block animate-spin text-xs">⏳</span>
-                        <span v-else class="text-lg">&times;</span>
+                        <span
+                          v-if="isDeleting === doc.id"
+                          class="inline-block animate-spin text-xs"
+                        >⏳</span>
+                        <span
+                          v-else
+                          class="text-lg"
+                        >&times;</span>
                       </button>
                     </div>
                   </div>
@@ -195,7 +285,7 @@
               <template v-if="completedDocuments.length > 0">
                 <div class="mb-4">
                   <h4 class="text-xs font-semibold text-gray-500 mb-2 flex items-center">
-                    <span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-2"></span>
+                    <span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-2" />
                     解析完成 ({{ completedDocuments.length }})
                   </h4>
                   <div class="space-y-2">
@@ -211,20 +301,28 @@
                         {{ getFileTypeIcon(doc.file_type) }}
                       </div>
                       <div class="grow min-w-0">
-                        <h4 class="text-sm font-medium text-gray-800 truncate">{{ doc.original_filename }}</h4>
+                        <h4 class="text-sm font-medium text-gray-800 truncate">
+                          {{ doc.original_filename }}
+                        </h4>
                         <p class="text-xs text-gray-500 mt-0.5">
                           {{ doc.file_size_mb }} MB •
                           <span class="text-green-600 font-medium">✓ 已解析完成</span>
                         </p>
                       </div>
                       <button
-                        @click="handleDeleteDocument(doc.id)"
                         :disabled="isDeleting === doc.id"
                         class="text-gray-400 hover:text-red-500 p-1.5 transition-colors disabled:opacity-50 shrink-0"
                         title="删除文件"
+                        @click="handleDeleteDocument(doc.id)"
                       >
-                        <span v-if="isDeleting === doc.id" class="inline-block animate-spin text-xs">⏳</span>
-                        <span v-else class="text-lg">&times;</span>
+                        <span
+                          v-if="isDeleting === doc.id"
+                          class="inline-block animate-spin text-xs"
+                        >⏳</span>
+                        <span
+                          v-else
+                          class="text-lg"
+                        >&times;</span>
                       </button>
                     </div>
                   </div>
@@ -235,7 +333,7 @@
               <template v-if="failedDocuments.length > 0">
                 <div class="mb-4">
                   <h4 class="text-xs font-semibold text-red-600 mb-2 flex items-center">
-                    <span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-2"></span>
+                    <span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-2" />
                     解析失败 ({{ failedDocuments.length }})
                   </h4>
                   <div class="space-y-2">
@@ -251,23 +349,34 @@
                         {{ getFileTypeIcon(doc.file_type) }}
                       </div>
                       <div class="grow min-w-0">
-                        <h4 class="text-sm font-medium text-gray-800 truncate">{{ doc.original_filename }}</h4>
+                        <h4 class="text-sm font-medium text-gray-800 truncate">
+                          {{ doc.original_filename }}
+                        </h4>
                         <p class="text-xs text-red-600 mt-0.5">
                           {{ doc.file_size_mb }} MB •
                           <span class="font-medium">✗ 解析失败</span>
-                          <span v-if="doc.error_message" class="ml-2 text-red-500">
+                          <span
+                            v-if="doc.error_message"
+                            class="ml-2 text-red-500"
+                          >
                             {{ doc.error_message }}
                           </span>
                         </p>
                       </div>
                       <button
-                        @click="handleDeleteDocument(doc.id)"
                         :disabled="isDeleting === doc.id"
                         class="text-gray-400 hover:text-red-500 p-1.5 transition-colors disabled:opacity-50 shrink-0"
                         title="删除文件"
+                        @click="handleDeleteDocument(doc.id)"
                       >
-                        <span v-if="isDeleting === doc.id" class="inline-block animate-spin text-xs">⏳</span>
-                        <span v-else class="text-lg">&times;</span>
+                        <span
+                          v-if="isDeleting === doc.id"
+                          class="inline-block animate-spin text-xs"
+                        >⏳</span>
+                        <span
+                          v-else
+                          class="text-lg"
+                        >&times;</span>
                       </button>
                     </div>
                   </div>
@@ -278,7 +387,7 @@
               <template v-if="uploadedDocuments.length > 0">
                 <div>
                   <h4 class="text-xs font-semibold text-gray-500 mb-2 flex items-center">
-                    <span class="inline-block w-2 h-2 rounded-full bg-gray-400 mr-2"></span>
+                    <span class="inline-block w-2 h-2 rounded-full bg-gray-400 mr-2" />
                     已上传 ({{ uploadedDocuments.length }})
                   </h4>
                   <div class="space-y-2">
@@ -294,20 +403,28 @@
                         {{ getFileTypeIcon(doc.file_type) }}
                       </div>
                       <div class="grow min-w-0">
-                        <h4 class="text-sm font-medium text-gray-800 truncate">{{ doc.original_filename }}</h4>
+                        <h4 class="text-sm font-medium text-gray-800 truncate">
+                          {{ doc.original_filename }}
+                        </h4>
                         <p class="text-xs text-gray-500 mt-0.5">
                           {{ doc.file_size_mb }} MB •
                           <span class="text-gray-600">等待解析...</span>
                         </p>
                       </div>
                       <button
-                        @click="handleDeleteDocument(doc.id)"
                         :disabled="isDeleting === doc.id"
                         class="text-gray-400 hover:text-red-500 p-1.5 transition-colors disabled:opacity-50 shrink-0"
                         title="删除文件"
+                        @click="handleDeleteDocument(doc.id)"
                       >
-                        <span v-if="isDeleting === doc.id" class="inline-block animate-spin text-xs">⏳</span>
-                        <span v-else class="text-lg">&times;</span>
+                        <span
+                          v-if="isDeleting === doc.id"
+                          class="inline-block animate-spin text-xs"
+                        >⏳</span>
+                        <span
+                          v-else
+                          class="text-lg"
+                        >&times;</span>
                       </button>
                     </div>
                   </div>
@@ -319,25 +436,59 @@
           <!-- Footer Actions -->
           <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
             <!-- 提示信息 -->
-            <div v-if="processingCount > 0" class="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+            <div
+              v-if="processingCount > 0"
+              class="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800"
+            >
               <div class="flex items-start">
-                <svg class="w-5 h-5 mr-2 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  class="w-5 h-5 mr-2 mt-0.5 shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 <div>
-                  <p class="font-medium">有 {{ processingCount }} 个文档正在解析中</p>
-                  <p class="text-xs mt-1 text-yellow-700">解析会在后台继续进行，您可以先进入下一步。解析完成后，AI助手将能够更好地理解备课资料。</p>
+                  <p class="font-medium">
+                    有 {{ processingCount }} 个文档正在解析中
+                  </p>
+                  <p class="text-xs mt-1 text-yellow-700">
+                    解析会在后台继续进行，您可以先进入下一步。解析完成后，AI助手将能够更好地理解备课资料。
+                  </p>
                 </div>
               </div>
             </div>
-            <div v-if="failedCount > 0" class="mb-3 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-800">
+            <div
+              v-if="failedCount > 0"
+              class="mb-3 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-800"
+            >
               <div class="flex items-start">
-                <svg class="w-5 h-5 mr-2 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  class="w-5 h-5 mr-2 mt-0.5 shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 <div>
-                  <p class="font-medium">有 {{ failedCount }} 个文档解析失败</p>
-                  <p class="text-xs mt-1 text-red-700">您可以删除失败的文档重新上传，或继续下一步（失败的文档将不会被AI助手使用）。</p>
+                  <p class="font-medium">
+                    有 {{ failedCount }} 个文档解析失败
+                  </p>
+                  <p class="text-xs mt-1 text-red-700">
+                    您可以删除失败的文档重新上传，或继续下一步（失败的文档将不会被AI助手使用）。
+                  </p>
                 </div>
               </div>
             </div>
@@ -353,18 +504,21 @@
               <div class="flex items-center space-x-3">
                 <button
                   v-if="documents.length > 0"
-                  @click="handleRefresh"
                   :disabled="isRefreshing"
                   class="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded transition-colors font-medium disabled:opacity-50"
                   title="刷新文档状态"
+                  @click="handleRefresh"
                 >
-                  <span v-if="isRefreshing" class="inline-block animate-spin mr-1">⏳</span>
+                  <span
+                    v-if="isRefreshing"
+                    class="inline-block animate-spin mr-1"
+                  >⏳</span>
                   刷新状态
                 </button>
                 <button
-                  @click="handleNext"
                   :disabled="isCreatingMeeting || !meetingId"
                   class="px-4 py-2 text-sm bg-nanyu-600 text-white rounded hover:bg-nanyu-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  @click="handleNext"
                 >
                   {{ isCreatingMeeting ? '正在创建会议...' : '下一步：完成' }}
                 </button>
@@ -420,19 +574,19 @@ const meeting = ref<Meeting | null>(null)
 
 // 计算属性：按状态分组文档
 const processingDocuments = computed(() => 
-  documents.value.filter(doc => doc.status === 'processing')
+  documents.value.filter(doc => doc.status === 'processing'),
 )
 
 const completedDocuments = computed(() => 
-  documents.value.filter(doc => doc.status === 'completed')
+  documents.value.filter(doc => doc.status === 'completed'),
 )
 
 const failedDocuments = computed(() => 
-  documents.value.filter(doc => doc.status === 'failed')
+  documents.value.filter(doc => doc.status === 'failed'),
 )
 
 const uploadedDocuments = computed(() => 
-  documents.value.filter(doc => doc.status === 'uploaded')
+  documents.value.filter(doc => doc.status === 'uploaded'),
 )
 
 // 计算属性：统计数量

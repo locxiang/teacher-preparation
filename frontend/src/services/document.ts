@@ -52,7 +52,7 @@ function getHeaders(): HeadersInit {
  */
 export async function uploadDocument(
   meetingId: string,
-  file: File
+  file: File,
 ): Promise<Document> {
   const formData = new FormData()
   formData.append('file', file)

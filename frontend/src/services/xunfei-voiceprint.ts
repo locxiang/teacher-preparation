@@ -94,7 +94,7 @@ export class XunfeiVoiceprintService {
   /**
    * 生成随机字符串
    */
-  private generateRandomString(length: number = 16): string {
+  private generateRandomString(length = 16): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
     let result = ''
     for (let i = 0; i < length; i++) {
@@ -147,7 +147,7 @@ export class XunfeiVoiceprintService {
   async registerVoiceprint(
     audioData: Int16Array,
     audioType: 'raw' | 'speex' | 'opus-ogg' = 'raw',
-    uid?: string
+    uid?: string,
   ): Promise<VoiceprintRegisterFullResponse> {
     // 将音频数据转换为Base64
     const audioBase64 = this.arrayBufferToBase64(audioData.buffer)
@@ -230,7 +230,7 @@ export class XunfeiVoiceprintService {
   async updateVoiceprint(
     featureId: string,
     audioData: Int16Array,
-    audioType: 'raw' | 'speex' | 'opus-ogg' = 'raw'
+    audioType: 'raw' | 'speex' | 'opus-ogg' = 'raw',
   ): Promise<VoiceprintUpdateFullResponse> {
     // 将音频数据转换为Base64
     const audioBase64 = this.arrayBufferToBase64(audioData.buffer)

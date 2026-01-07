@@ -5,23 +5,27 @@
       <div class="max-w-[1600px] mx-auto px-8 py-4">
         <div class="flex items-center justify-between">
           <div>
-            <h1 class="text-2xl font-semibold text-gray-900">AI 实时语音通话</h1>
-            <p class="text-sm text-gray-500 mt-1">与AI进行实时语音对话，支持语音输入和语音输出</p>
+            <h1 class="text-2xl font-semibold text-gray-900">
+              AI 实时语音通话
+            </h1>
+            <p class="text-sm text-gray-500 mt-1">
+              与AI进行实时语音对话，支持语音输入和语音输出
+            </p>
           </div>
           <div class="flex items-center space-x-4">
             <!-- 语音开关 -->
             <label class="flex items-center cursor-pointer">
               <input
-                type="checkbox"
                 v-model="enableVoiceOutput"
+                type="checkbox"
                 class="w-4 h-4 text-nanyu-600 border-gray-300 rounded focus:ring-nanyu-500"
-              />
+              >
               <span class="ml-2 text-sm text-gray-700">语音播放</span>
             </label>
             <!-- 清空对话按钮 -->
             <button
-              @click="clearChat"
               class="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors font-medium"
+              @click="clearChat"
             >
               清空对话
             </button>
@@ -31,24 +35,39 @@
     </div>
 
     <!-- 主内容区域 -->
-    <div class="flex-1 overflow-hidden flex max-w-[1600px] mx-auto w-full px-8 py-6 gap-6 min-h-0" style="height: 0;">
+    <div
+      class="flex-1 overflow-hidden flex max-w-[1600px] mx-auto w-full px-8 py-6 gap-6 min-h-0"
+      style="height: 0;"
+    >
       <!-- 左侧：通话界面 -->
       <div class="w-2/5 flex flex-col items-center justify-center space-y-8 overflow-hidden min-h-0">
         <!-- 通话状态显示 -->
         <div class="text-center w-full">
           <div class="text-4xl font-bold text-gray-800 mb-4">
-            <span v-if="isRecording && !isAIThinking && !isAISpeaking" class="text-red-600">
+            <span
+              v-if="isRecording && !isAIThinking && !isAISpeaking"
+              class="text-red-600"
+            >
               正在说话...
             </span>
-            <span v-else-if="isAIThinking" class="text-nanyu-600 flex items-center justify-center">
+            <span
+              v-else-if="isAIThinking"
+              class="text-nanyu-600 flex items-center justify-center"
+            >
               <span class="inline-block animate-pulse mr-2">🤖</span>
               AI思考中
             </span>
-            <span v-else-if="isAISpeaking" class="text-nanyu-600 flex items-center justify-center">
+            <span
+              v-else-if="isAISpeaking"
+              class="text-nanyu-600 flex items-center justify-center"
+            >
               <span class="inline-block animate-pulse mr-2">🔊</span>
               AI正在说话，请等待...
             </span>
-            <span v-else class="text-gray-500">
+            <span
+              v-else
+              class="text-gray-500"
+            >
               等待中...
             </span>
           </div>
@@ -61,11 +80,17 @@
               :class="tempTranscript ? 'border-nanyu-400' : 'border-gray-300'"
             >
               <div class="w-full">
-                <div v-if="tempTranscript" class="text-2xl text-gray-800 font-medium leading-relaxed break-words">
+                <div
+                  v-if="tempTranscript"
+                  class="text-2xl text-gray-800 font-medium leading-relaxed break-words"
+                >
                   {{ tempTranscript }}
-                  <span class="inline-block w-1 h-6 bg-nanyu-600 ml-1 animate-pulse"></span>
+                  <span class="inline-block w-1 h-6 bg-nanyu-600 ml-1 animate-pulse" />
                 </div>
-                <div v-else class="text-lg text-gray-400 italic">
+                <div
+                  v-else
+                  class="text-lg text-gray-400 italic"
+                >
                   正在识别中...
                 </div>
               </div>
@@ -75,15 +100,21 @@
               class="bg-white/90 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-6 min-h-[120px] flex items-center justify-center"
             >
               <div class="text-center">
-                <div class="text-sm text-gray-500 mb-2">已识别</div>
-                <div class="text-xl text-gray-800 font-medium">{{ messages[messages.length - 1].content }}</div>
+                <div class="text-sm text-gray-500 mb-2">
+                  已识别
+                </div>
+                <div class="text-xl text-gray-800 font-medium">
+                  {{ messages[messages.length - 1].content }}
+                </div>
               </div>
             </div>
             <div
               v-else
               class="bg-white/90 backdrop-blur-sm border-2 border-dashed border-gray-300 rounded-xl shadow-lg p-6 min-h-[120px] flex items-center justify-center"
             >
-              <div class="text-lg text-gray-400 italic">等待语音输入...</div>
+              <div class="text-lg text-gray-400 italic">
+                等待语音输入...
+              </div>
             </div>
           </div>
         </div>
@@ -106,7 +137,6 @@
         <!-- 大号通话按钮 -->
         <div class="flex flex-col items-center space-y-4">
           <button
-            @click="toggleRecording"
             :disabled="isAIThinking || isAISpeaking"
             :class="[
               'w-32 h-32 rounded-full shadow-2xl transition-all duration-300 flex items-center justify-center',
@@ -116,6 +146,7 @@
               (isAIThinking || isAISpeaking) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
             ]"
             :title="isAISpeaking ? 'AI正在说话，请等待说完后再开始对话' : isAIThinking ? 'AI正在思考中...' : ''"
+            @click="toggleRecording"
           >
             <svg
               v-if="!isRecording"
@@ -148,11 +179,11 @@
         <!-- 通话信息 -->
         <div class="flex items-center space-x-6 text-sm text-gray-600">
           <div class="flex items-center space-x-2">
-            <div :class="['w-3 h-3 rounded-full', isRecording ? 'bg-red-500 animate-pulse' : 'bg-gray-400']"></div>
+            <div :class="['w-3 h-3 rounded-full', isRecording ? 'bg-red-500 animate-pulse' : 'bg-gray-400']" />
             <span>用户</span>
           </div>
           <div class="flex items-center space-x-2">
-            <div :class="['w-3 h-3 rounded-full', isAISpeaking || isAIThinking ? 'bg-nanyu-600 animate-pulse' : 'bg-gray-400']"></div>
+            <div :class="['w-3 h-3 rounded-full', isAISpeaking || isAIThinking ? 'bg-nanyu-600 animate-pulse' : 'bg-gray-400']" />
             <span>AI助手</span>
           </div>
         </div>
@@ -161,11 +192,13 @@
       <!-- 右侧：对话历史 -->
       <div class="flex-1 h-200 flex flex-col bg-white/80 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-lg overflow-hidden min-w-0 min-h-0">
         <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex-shrink-0">
-          <h2 class="text-lg font-semibold text-gray-900">对话记录</h2>
+          <h2 class="text-lg font-semibold text-gray-900">
+            对话记录
+          </h2>
         </div>
         <div
-          class="flex-1 overflow-y-scroll p-4 space-y-4 min-h-0 h-0"
           ref="chatContainer"
+          class="flex-1 overflow-y-scroll p-4 space-y-4 min-h-0 h-0"
         >
           <div
             v-for="(message, index) in messages"
@@ -192,7 +225,7 @@
                   message.role === 'user' ? 'text-white' : 'text-gray-700'
                 ]"
                 v-html="formatMessage(message.content)"
-              ></div>
+              />
               <div
                 :class="[
                   'text-xs mt-1 opacity-70',
@@ -205,13 +238,25 @@
           </div>
 
           <!-- 正在输入指示器 -->
-          <div v-if="isAIThinking" class="flex justify-start">
+          <div
+            v-if="isAIThinking"
+            class="flex justify-start"
+          >
             <div class="bg-gray-100 rounded-lg px-3 py-2">
               <div class="flex items-center space-x-2">
                 <div class="flex space-x-1">
-                  <div class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0s"></div>
-                  <div class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
-                  <div class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
+                  <div
+                    class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"
+                    style="animation-delay: 0s"
+                  />
+                  <div
+                    class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"
+                    style="animation-delay: 0.2s"
+                  />
+                  <div
+                    class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"
+                    style="animation-delay: 0.4s"
+                  />
                 </div>
                 <span class="text-xs text-gray-500">AI正在思考...</span>
               </div>

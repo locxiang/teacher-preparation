@@ -5,8 +5,12 @@
       <div class="max-w-[1600px] mx-auto px-8 py-4">
         <div class="flex items-center justify-between">
           <div>
-            <h1 class="text-2xl font-semibold text-gray-900">系统设置</h1>
-            <p class="text-sm text-gray-500 mt-1">管理系统用户、教师信息和API密钥配置</p>
+            <h1 class="text-2xl font-semibold text-gray-900">
+              系统设置
+            </h1>
+            <p class="text-sm text-gray-500 mt-1">
+              管理系统用户、教师信息和API密钥配置
+            </p>
           </div>
         </div>
       </div>
@@ -17,7 +21,10 @@
       <div class="grid grid-cols-12 gap-6">
         <!-- Left Sidebar: Settings Navigation -->
         <div class="col-span-12 lg:col-span-3">
-          <SettingsNavigation :active-tab="activeTab" @tab-change="activeTab = $event" />
+          <SettingsNavigation
+            :active-tab="activeTab"
+            @tab-change="activeTab = $event"
+          />
         </div>
 
         <!-- Right Content -->

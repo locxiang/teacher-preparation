@@ -82,7 +82,7 @@ function getHeaders(): HeadersInit {
 export async function register(
   username: string,
   email: string,
-  password: string
+  password: string,
 ): Promise<RegisterResponse> {
   const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
     method: 'POST',
@@ -113,7 +113,7 @@ export async function register(
  */
 export async function login(
   usernameOrEmail: string,
-  password: string
+  password: string,
 ): Promise<LoginResponse> {
   // 判断是用户名还是邮箱
   const isEmail = usernameOrEmail.includes('@')

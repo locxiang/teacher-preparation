@@ -30,7 +30,7 @@ export class AliyunASRDirectService {
   private sendInterval: number | null = null // 发送定时器
   private connectionEvent: Promise<void> | null = null // 连接事件
   private startTranscriptionSent = false // 是否已发送StartTranscription
-  private recordingStartTime: number = 0 // 录音开始的时间戳（用于将相对时间转换为绝对时间）
+  private recordingStartTime = 0 // 录音开始的时间戳（用于将相对时间转换为绝对时间）
 
   /**
    * 连接WebSocket

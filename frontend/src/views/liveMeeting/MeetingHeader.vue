@@ -10,7 +10,10 @@
             </h1>
             <p class="text-sm text-gray-500 mt-1">
               {{ formatTime(new Date()) }} | {{ messageCount }}条记录
-              <span v-if="meeting?.task_id" class="ml-2 font-mono text-xs">Task ID: {{ meeting.task_id.substring(0, 8) }}...</span>
+              <span
+                v-if="meeting?.task_id"
+                class="ml-2 font-mono text-xs"
+              >Task ID: {{ meeting.task_id.substring(0, 8) }}...</span>
             </p>
           </div>
         </div>
@@ -26,9 +29,9 @@
           <!-- 麦克风授权按钮 -->
           <button
             v-else-if="!hasMicrophonePermission"
-            @click="$emit('request-permission')"
             :disabled="isRequestingPermission"
             class="px-3 py-1.5 text-xs bg-blue-50 text-blue-700 hover:bg-blue-100 rounded border border-blue-200 transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+            @click="$emit('request-permission')"
           >
             <span class="mr-1">🎤</span>
             {{ isRequestingPermission ? '请求授权中...' : '授权麦克风' }}
@@ -37,11 +40,11 @@
           <!-- 开始/停止录音按钮 -->
           <button
             v-else
-            @click="$emit('toggle-recording')"
             :class="isRecording
               ? 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100 border-yellow-200'
               : 'bg-green-50 text-green-700 hover:bg-green-100 border-green-200'"
             class="px-3 py-1.5 text-xs rounded border transition-colors flex items-center"
+            @click="$emit('toggle-recording')"
           >
             <span class="mr-1">{{ isRecording ? '⏸️' : '▶️' }}</span>
             {{ isRecording ? '暂停录音' : '开始录音' }}

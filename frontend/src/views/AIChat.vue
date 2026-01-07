@@ -5,8 +5,12 @@
       <div class="max-w-[1600px] mx-auto px-8 py-4">
         <div class="flex items-center justify-between">
           <div>
-            <h1 class="text-2xl font-semibold text-gray-900">AI 智能对话</h1>
-            <p class="text-sm text-gray-500 mt-1">选择会议并输入聊天记录，AI助手将为您提供智能回答</p>
+            <h1 class="text-2xl font-semibold text-gray-900">
+              AI 智能对话
+            </h1>
+            <p class="text-sm text-gray-500 mt-1">
+              选择会议并输入聊天记录，AI助手将为您提供智能回答
+            </p>
           </div>
         </div>
       </div>
@@ -18,29 +22,49 @@
         <div class="bg-white border border-gray-200 rounded shadow-sm">
           <!-- 会议选择区域 -->
           <div class="px-6 py-5 border-b border-gray-200 bg-gray-50">
-            <h3 class="text-sm font-semibold text-gray-900">选择会议</h3>
+            <h3 class="text-sm font-semibold text-gray-900">
+              选择会议
+            </h3>
           </div>
           <div class="p-6">
-            <div v-if="isLoadingMeetings" class="text-center py-4">
-              <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-nanyu-600"></div>
-              <p class="mt-2 text-sm text-gray-500">加载会议列表...</p>
+            <div
+              v-if="isLoadingMeetings"
+              class="text-center py-4"
+            >
+              <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-nanyu-600" />
+              <p class="mt-2 text-sm text-gray-500">
+                加载会议列表...
+              </p>
             </div>
             <select
               v-else
               v-model="selectedMeetingId"
               class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-nanyu-500 focus:border-transparent outline-none transition-all"
             >
-              <option value="">请选择会议</option>
-              <option v-for="meeting in meetings" :key="meeting.id" :value="meeting.id">
+              <option value="">
+                请选择会议
+              </option>
+              <option
+                v-for="meeting in meetings"
+                :key="meeting.id"
+                :value="meeting.id"
+              >
                 {{ meeting.name }} ({{ formatDate(meeting.created_at) }})
               </option>
             </select>
-            <p v-if="errorMessage" class="text-red-500 text-xs mt-2">{{ errorMessage }}</p>
+            <p
+              v-if="errorMessage"
+              class="text-red-500 text-xs mt-2"
+            >
+              {{ errorMessage }}
+            </p>
           </div>
 
           <!-- 聊天记录输入区域 -->
           <div class="px-6 py-5 border-b border-gray-200 bg-gray-50">
-            <h3 class="text-sm font-semibold text-gray-900">聊天记录</h3>
+            <h3 class="text-sm font-semibold text-gray-900">
+              聊天记录
+            </h3>
           </div>
           <div class="p-6">
             <!-- 样例按钮 -->
@@ -48,8 +72,8 @@
               <button
                 v-for="(sample, index) in sampleChats"
                 :key="index"
-                @click="loadSample(index)"
                 class="px-2.5 py-1 text-xs bg-nanyu-50 text-nanyu-700 border border-nanyu-200 rounded hover:bg-nanyu-100 hover:border-nanyu-300 transition-colors font-medium"
+                @click="loadSample(index)"
               >
                 {{ sample.label }}
               </button>
@@ -59,8 +83,10 @@
               v-model="chatHistory"
               placeholder="请输入聊天记录内容..."
               class="w-full h-40 px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-nanyu-500 focus:border-transparent outline-none resize-none"
-            ></textarea>
-            <p class="text-xs text-gray-500 mt-2">可以粘贴会议聊天记录或其他文本内容，或点击上方样例按钮快速填充</p>
+            />
+            <p class="text-xs text-gray-500 mt-2">
+              可以粘贴会议聊天记录或其他文本内容，或点击上方样例按钮快速填充
+            </p>
           </div>
 
           <!-- 提交按钮 -->
@@ -68,65 +94,104 @@
             <div class="flex items-center justify-between mb-3">
               <label class="flex items-center cursor-pointer">
                 <input
-                  type="checkbox"
                   v-model="enableVoice"
+                  type="checkbox"
                   class="w-4 h-4 text-nanyu-600 border-gray-300 rounded focus:ring-nanyu-500"
-                />
+                >
                 <span class="ml-2 text-sm text-gray-700">启用语音播放</span>
               </label>
               <button
                 v-if="isPlayingVoice"
-                @click="stopVoice"
                 class="px-3 py-1.5 text-xs bg-red-50 text-red-700 border border-red-200 rounded hover:bg-red-100 transition-colors font-medium"
+                @click="stopVoice"
               >
                 🛑 停止播放
               </button>
             </div>
             <button
-              @click="handleSubmit"
               :disabled="isSubmitting || (!selectedMeetingId && !chatHistory.trim())"
               class="w-full px-4 py-2 text-sm bg-nanyu-600 text-white rounded hover:bg-nanyu-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
+              @click="handleSubmit"
             >
-              <span v-if="isSubmitting" class="inline-flex items-center">
+              <span
+                v-if="isSubmitting"
+                class="inline-flex items-center"
+              >
                 <span class="inline-block animate-spin mr-2">⏳</span>
                 AI正在思考...
               </span>
               <span v-else>开始对话</span>
             </button>
-            <p v-if="errorMessage" class="text-red-500 text-xs mt-3 text-center">{{ errorMessage }}</p>
+            <p
+              v-if="errorMessage"
+              class="text-red-500 text-xs mt-3 text-center"
+            >
+              {{ errorMessage }}
+            </p>
           </div>
         </div>
 
         <!-- AI回答区域 -->
-        <div v-if="aiResponse || isSubmitting" class="bg-white border border-gray-200 rounded shadow-sm">
+        <div
+          v-if="aiResponse || isSubmitting"
+          class="bg-white border border-gray-200 rounded shadow-sm"
+        >
           <div class="px-6 py-5 border-b border-gray-200 bg-gray-50">
             <h3 class="text-sm font-semibold text-gray-900 flex items-center">
-              <svg class="w-4 h-4 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              <svg
+                class="w-4 h-4 mr-2 text-gray-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                />
               </svg>
               AI 回答
-              <span v-if="isSubmitting" class="ml-2 inline-block animate-pulse text-nanyu-600 text-xs">正在输入...</span>
+              <span
+                v-if="isSubmitting"
+                class="ml-2 inline-block animate-pulse text-nanyu-600 text-xs"
+              >正在输入...</span>
             </h3>
           </div>
           <div class="p-6">
             <div class="prose prose-sm max-w-none prose-headings:text-gray-800 prose-p:text-gray-700 prose-strong:text-gray-900 prose-code:text-nanyu-600 prose-pre:bg-gray-100">
               <div class="bg-gray-50 p-4 rounded border border-gray-200 min-h-[100px] markdown-content">
-                <div v-if="aiResponse" v-html="renderedMarkdown" class="markdown-body"></div>
-                <div v-else-if="isSubmitting" class="text-gray-400 italic text-sm">等待AI回答...</div>
+                <div
+                  v-if="aiResponse"
+                  class="markdown-body"
+                  v-html="renderedMarkdown"
+                />
+                <div
+                  v-else-if="isSubmitting"
+                  class="text-gray-400 italic text-sm"
+                >
+                  等待AI回答...
+                </div>
                 <!-- 打字光标效果 -->
-                <span v-if="isSubmitting && aiResponse" class="inline-block w-2 h-4 bg-nanyu-600 ml-1 animate-pulse"></span>
+                <span
+                  v-if="isSubmitting && aiResponse"
+                  class="inline-block w-2 h-4 bg-nanyu-600 ml-1 animate-pulse"
+                />
               </div>
             </div>
-            <div v-if="aiResponse && !isSubmitting" class="mt-4 flex justify-end space-x-2">
+            <div
+              v-if="aiResponse && !isSubmitting"
+              class="mt-4 flex justify-end space-x-2"
+            >
               <button
-                @click="copyResponse"
                 class="px-3 py-1.5 text-xs bg-white border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors font-medium"
+                @click="copyResponse"
               >
                 复制内容
               </button>
               <button
-                @click="clearResponse"
                 class="px-3 py-1.5 text-xs bg-white border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors font-medium"
+                @click="clearResponse"
               >
                 清空
               </button>
@@ -185,7 +250,7 @@ const sampleChats = ref([
 
 张伟：这个作业好，既能落实情感目标，又能锻炼表达。对了，要不要加一个拓展阅读？比如链接朱自清的《给亡妇》，或者当代作家写父爱的短文，让学生对比不同年代的父爱表达，但会不会增加学生负担？
 
-王芳：拓展阅读可以作为选做内容，给学有余力的学生。咱们现在把思路整合一下：导入用"你的父亲有哪些让你难忘的瞬间"提问，接着补充时代背景和作者经历，核心环节是细节品读会+配乐朗读，然后通过"古今父爱对话"联系生活，最后用"解读'又'字"升华主题，作业是写一段话给父亲。这样流程就清晰了，重点突出，也贴合学生学情。`
+王芳：拓展阅读可以作为选做内容，给学有余力的学生。咱们现在把思路整合一下：导入用"你的父亲有哪些让你难忘的瞬间"提问，接着补充时代背景和作者经历，核心环节是细节品读会+配乐朗读，然后通过"古今父爱对话"联系生活，最后用"解读'又'字"升华主题，作业是写一段话给父亲。这样流程就清晰了，重点突出，也贴合学生学情。`,
   },
   {
     label: '样例2：数学教学讨论',
@@ -198,7 +263,7 @@ const sampleChats = ref([
 
 李老师：我觉得可以用生活中的例子，比如温度和时间的关系，让学生先有直观感受。
 
-王老师：对，还可以用图像帮助学生理解函数的对应关系。`
+王老师：对，还可以用图像帮助学生理解函数的对应关系。`,
   },
   {
     label: '样例3：英语教学研讨',
@@ -211,8 +276,8 @@ const sampleChats = ref([
 
 刘老师：我建议增加词汇教学时间，同时加强阅读技巧训练。
 
-赵老师：可以设计一些有趣的阅读活动，提高学生的阅读兴趣。`
-  }
+赵老师：可以设计一些有趣的阅读活动，提高学生的阅读兴趣。`,
+  },
 ])
 
 // 加载样例
@@ -432,7 +497,7 @@ const handleSubmit = async () => {
         errorMessage.value = error.message || 'AI对话失败，请重试'
         isSubmitting.value = false
         stopVoice()
-      }
+      },
     )
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : 'AI对话失败，请重试'

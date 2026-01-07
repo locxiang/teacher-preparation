@@ -5,14 +5,31 @@
       <div class="max-w-[1600px] mx-auto px-8 py-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-4">
-            <router-link to="/" class="text-gray-500 hover:text-gray-700 transition-colors">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            <router-link
+              to="/"
+              class="text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
               </svg>
             </router-link>
             <div>
-              <h1 class="text-2xl font-semibold text-gray-900">创建新会议</h1>
-              <p class="text-sm text-gray-500 mt-1">请填写会议基本信息，以便AI助手更好地辅助备课</p>
+              <h1 class="text-2xl font-semibold text-gray-900">
+                创建新会议
+              </h1>
+              <p class="text-sm text-gray-500 mt-1">
+                请填写会议基本信息，以便AI助手更好地辅助备课
+              </p>
             </div>
           </div>
         </div>
@@ -25,26 +42,37 @@
         <!-- Steps -->
         <div class="mb-6 flex items-center justify-center space-x-4 text-sm font-medium">
           <div class="flex items-center text-nanyu-600">
-            <div class="w-6 h-6 rounded-full bg-nanyu-600 text-white flex items-center justify-center text-xs mr-2">1</div>
+            <div class="w-6 h-6 rounded-full bg-nanyu-600 text-white flex items-center justify-center text-xs mr-2">
+              1
+            </div>
             填写基本信息
           </div>
-          <div class="w-12 h-0.5 bg-gray-200"></div>
+          <div class="w-12 h-0.5 bg-gray-200" />
           <div class="flex items-center text-gray-400">
-            <div class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center text-xs mr-2">2</div>
+            <div class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center text-xs mr-2">
+              2
+            </div>
             上传资料
           </div>
-          <div class="w-12 h-0.5 bg-gray-200"></div>
+          <div class="w-12 h-0.5 bg-gray-200" />
           <div class="flex items-center text-gray-400">
-            <div class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center text-xs mr-2">3</div>
+            <div class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center text-xs mr-2">
+              3
+            </div>
             完成
           </div>
         </div>
 
         <div class="bg-white border border-gray-200 rounded shadow-sm">
           <div class="px-6 py-5 border-b border-gray-200 bg-gray-50">
-            <h2 class="text-sm font-semibold text-gray-900">基本信息</h2>
+            <h2 class="text-sm font-semibold text-gray-900">
+              基本信息
+            </h2>
           </div>
-          <form @submit.prevent="handleSubmit" class="p-6 space-y-5">
+          <form
+            class="p-6 space-y-5"
+            @submit.prevent="handleSubmit"
+          >
             <!-- Title -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1.5">会议标题 <span class="text-red-500">*</span></label>
@@ -54,7 +82,7 @@
                 required
                 placeholder="请输入会议标题（如：三年级数学教案讨论）"
                 class="w-full px-3 py-2 text-sm rounded border border-gray-300 focus:ring-2 focus:ring-nanyu-500 focus:border-transparent outline-none transition-all"
-              />
+              >
             </div>
 
             <!-- Subject & Grade -->
@@ -65,7 +93,9 @@
                   v-model="subject"
                   class="w-full px-3 py-2 text-sm rounded border border-gray-300 focus:ring-2 focus:ring-nanyu-500 focus:border-transparent outline-none transition-all bg-white"
                 >
-                  <option value="">选择学科</option>
+                  <option value="">
+                    选择学科
+                  </option>
                   <option>数学</option>
                   <option>语文</option>
                   <option>英语</option>
@@ -79,7 +109,9 @@
                   v-model="grade"
                   class="w-full px-3 py-2 text-sm rounded border border-gray-300 focus:ring-2 focus:ring-nanyu-500 focus:border-transparent outline-none transition-all bg-white"
                 >
-                  <option value="">选择年级</option>
+                  <option value="">
+                    选择年级
+                  </option>
                   <option>初一年级</option>
                   <option>初二年级</option>
                   <option>初三年级</option>
@@ -97,7 +129,9 @@
                 v-model="lessonType"
                 class="w-full px-3 py-2 text-sm rounded border border-gray-300 focus:ring-2 focus:ring-nanyu-500 focus:border-transparent outline-none transition-all bg-white"
               >
-                <option value="">选择备课类型</option>
+                <option value="">
+                  选择备课类型
+                </option>
                 <option>新课</option>
                 <option>复习</option>
                 <option>专题</option>
@@ -115,7 +149,7 @@
                 rows="3"
                 placeholder="请输入本次备课的教学主题和主要内容（可选）"
                 class="w-full px-3 py-2 text-sm rounded border border-gray-300 focus:ring-2 focus:ring-nanyu-500 focus:border-transparent outline-none transition-all"
-              ></textarea>
+              />
             </div>
 
             <!-- Participants -->
@@ -129,13 +163,19 @@
                   class="bg-white border text-gray-700 px-2.5 py-1 rounded text-xs flex items-center"
                   :class="hostTeacherId === teacher.id ? 'border-nanyu-500 bg-nanyu-50' : 'border-gray-200'"
                 >
-                  <span v-if="hostTeacherId === teacher.id" class="mr-1 text-nanyu-600">👑</span>
+                  <span
+                    v-if="hostTeacherId === teacher.id"
+                    class="mr-1 text-nanyu-600"
+                  >👑</span>
                   {{ teacher.name }} ({{ teacher.subject }})
-                  <span v-if="hostTeacherId === teacher.id" class="ml-1 text-xs text-nanyu-600">主持人</span>
+                  <span
+                    v-if="hostTeacherId === teacher.id"
+                    class="ml-1 text-xs text-nanyu-600"
+                  >主持人</span>
                   <button
                     type="button"
-                    @click.stop="removeTeacher(teacher.id)"
                     class="ml-1.5 text-gray-400 hover:text-red-500 transition-colors"
+                    @click.stop="removeTeacher(teacher.id)"
                   >
                     &times;
                   </button>
@@ -144,33 +184,42 @@
                 <!-- Add Teacher Button -->
                 <button
                   type="button"
-                  @click="openTeacherSelector"
                   class="text-nanyu-600 hover:text-nanyu-700 text-xs font-medium px-2 py-1 flex items-center transition-colors"
+                  @click="openTeacherSelector"
                 >
                   + 添加教师
                 </button>
 
                 <!-- Empty State -->
-                <div v-if="selectedTeachers.length === 0" class="text-gray-400 text-xs flex items-center">
+                <div
+                  v-if="selectedTeachers.length === 0"
+                  class="text-gray-400 text-xs flex items-center"
+                >
                   请选择参与教师
                 </div>
               </div>
 
               <!-- Host Selection -->
-              <div v-if="selectedTeachers.length > 0" class="mt-3">
+              <div
+                v-if="selectedTeachers.length > 0"
+                class="mt-3"
+              >
                 <label class="block text-sm font-medium text-gray-700 mb-1.5">选择主持人 <span class="text-red-500">*</span></label>
                 <div class="flex flex-wrap gap-2">
                   <button
                     v-for="teacher in selectedTeachers"
                     :key="teacher.id"
                     type="button"
-                    @click="hostTeacherId = teacher.id"
                     class="px-3 py-1.5 rounded text-xs font-medium transition-all"
                     :class="hostTeacherId === teacher.id
                       ? 'bg-nanyu-600 text-white'
                       : 'bg-white border border-gray-300 text-gray-700 hover:border-nanyu-300 hover:text-nanyu-600'"
+                    @click="hostTeacherId = teacher.id"
                   >
-                    <span v-if="hostTeacherId === teacher.id" class="mr-1">👑</span>
+                    <span
+                      v-if="hostTeacherId === teacher.id"
+                      class="mr-1"
+                    >👑</span>
                     {{ teacher.name }}
                   </button>
                 </div>
@@ -186,13 +235,25 @@
               <div class="bg-white border border-gray-200 rounded shadow-lg w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col">
                 <!-- Header -->
                 <div class="px-5 py-3 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-                  <h3 class="text-sm font-semibold text-gray-900">选择教师</h3>
+                  <h3 class="text-sm font-semibold text-gray-900">
+                    选择教师
+                  </h3>
                   <button
-                    @click="showTeacherSelector = false"
                     class="text-gray-400 hover:text-gray-600"
+                    @click="showTeacherSelector = false"
                   >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -200,19 +261,32 @@
                 <!-- Teacher List -->
                 <div class="flex-1 overflow-y-auto p-4">
                   <!-- Loading -->
-                  <div v-if="isLoadingTeachers" class="text-center py-8">
-                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-nanyu-600"></div>
-                    <p class="mt-4 text-sm text-gray-600">加载中...</p>
+                  <div
+                    v-if="isLoadingTeachers"
+                    class="text-center py-8"
+                  >
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-nanyu-600" />
+                    <p class="mt-4 text-sm text-gray-600">
+                      加载中...
+                    </p>
                   </div>
 
                   <!-- Error -->
-                  <div v-else-if="teacherError" class="text-red-600 text-xs text-center py-4">
+                  <div
+                    v-else-if="teacherError"
+                    class="text-red-600 text-xs text-center py-4"
+                  >
                     {{ teacherError }}
                   </div>
 
                   <!-- Empty -->
-                  <div v-else-if="availableTeachers.length === 0" class="text-center py-8 text-gray-500">
-                    <p class="text-sm">还没有添加教师</p>
+                  <div
+                    v-else-if="availableTeachers.length === 0"
+                    class="text-center py-8 text-gray-500"
+                  >
+                    <p class="text-sm">
+                      还没有添加教师
+                    </p>
                     <router-link
                       to="/settings"
                       class="text-nanyu-600 hover:text-nanyu-700 mt-2 inline-block text-xs"
@@ -223,20 +297,27 @@
                   </div>
 
                   <!-- Teacher List -->
-                  <div v-else class="space-y-2">
+                  <div
+                    v-else
+                    class="space-y-2"
+                  >
                     <div
                       v-for="teacher in availableTeachers"
                       :key="teacher.id"
-                      @click="toggleTeacher(teacher)"
                       class="p-3 rounded border cursor-pointer transition-all"
                       :class="isTeacherSelected(teacher.id)
                         ? 'border-nanyu-500 bg-nanyu-50'
                         : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'"
+                      @click="toggleTeacher(teacher)"
                     >
                       <div class="flex items-center justify-between">
                         <div>
-                          <div class="text-sm font-medium text-gray-800">{{ teacher.name }}</div>
-                          <div class="text-xs text-gray-500 mt-0.5">{{ teacher.subject }}</div>
+                          <div class="text-sm font-medium text-gray-800">
+                            {{ teacher.name }}
+                          </div>
+                          <div class="text-xs text-gray-500 mt-0.5">
+                            {{ teacher.subject }}
+                          </div>
                         </div>
                         <div class="flex items-center space-x-2">
                           <span
@@ -266,14 +347,14 @@
                 <!-- Footer -->
                 <div class="px-5 py-3 border-t border-gray-200 bg-gray-50 flex justify-end space-x-2">
                   <button
-                    @click="showTeacherSelector = false"
                     class="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                    @click="showTeacherSelector = false"
                   >
                     取消
                   </button>
                   <button
-                    @click="confirmSelection"
                     class="px-3 py-1.5 text-xs bg-nanyu-600 text-white rounded hover:bg-nanyu-700 transition-colors"
+                    @click="confirmSelection"
                   >
                     确定
                   </button>
@@ -283,7 +364,12 @@
 
             <!-- Actions -->
             <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end space-x-3">
-              <router-link to="/" class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded transition-colors font-medium">取消</router-link>
+              <router-link
+                to="/"
+                class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded transition-colors font-medium"
+              >
+                取消
+              </router-link>
               <button
                 type="submit"
                 class="px-4 py-2 text-sm bg-nanyu-600 text-white rounded hover:bg-nanyu-700 transition-colors font-medium"
@@ -340,7 +426,7 @@ const toggleTeacher = (teacher: Teacher) => {
 // 确认选择
 const confirmSelection = () => {
   selectedTeachers.value = availableTeachers.value.filter(teacher =>
-    tempSelectedTeacherIds.value.includes(teacher.id)
+    tempSelectedTeacherIds.value.includes(teacher.id),
   )
   showTeacherSelector.value = false
 }
@@ -456,7 +542,7 @@ onMounted(async () => {
         // 根据教师ID从可用教师列表中匹配
         const teacherIds = formData.teachers.map((t: Teacher) => t.id)
         selectedTeachers.value = availableTeachers.value.filter(teacher => 
-          teacherIds.includes(teacher.id)
+          teacherIds.includes(teacher.id),
         )
         
         // 如果匹配到的教师数量与保存的不一致，使用保存的教师数据（可能包含完整信息）

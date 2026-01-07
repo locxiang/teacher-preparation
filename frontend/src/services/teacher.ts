@@ -66,7 +66,7 @@ export async function getTeachers(): Promise<Teacher[]> {
 export async function createTeacher(
   name: string,
   subject: string,
-  featureId?: string
+  featureId?: string,
 ): Promise<Teacher> {
   const response = await fetch(`${API_BASE_URL}/api/teachers`, {
     method: 'POST',
@@ -96,7 +96,7 @@ export async function updateTeacher(
     name?: string
     subject?: string
     feature_id?: string
-  }
+  },
 ): Promise<Teacher> {
   const response = await fetch(`${API_BASE_URL}/api/teachers/${teacherId}`, {
     method: 'PUT',

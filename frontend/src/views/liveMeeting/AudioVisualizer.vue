@@ -3,7 +3,10 @@
     <div class="flex items-center justify-between mb-2">
       <span class="text-xs text-gray-500">正在发言</span>
       <span class="text-xs font-medium text-gray-700">
-        <span v-if="isAISpeaking || isAIGenerating" class="text-nanyu-600 flex items-center">
+        <span
+          v-if="isAISpeaking || isAIGenerating"
+          class="text-nanyu-600 flex items-center"
+        >
           <span class="inline-block animate-pulse mr-1">🤖</span>
           {{ isAIGenerating ? 'AI思考中...' : 'AI正在说话' }}
         </span>
@@ -21,7 +24,10 @@
       />
     </div>
     <!-- 静默计时器 -->
-    <div v-if="isRecording" class="mt-3 pt-3 border-t border-gray-200">
+    <div
+      v-if="isRecording"
+      class="mt-3 pt-3 border-t border-gray-200"
+    >
       <div class="flex items-center justify-between">
         <span class="text-xs text-gray-500">静默时长</span>
         <span
@@ -32,7 +38,10 @@
         </span>
       </div>
       <!-- AI状态提示 -->
-      <div v-if="isAISpeaking || isAIGenerating" class="mt-2 pt-2 border-t border-gray-200">
+      <div
+        v-if="isAISpeaking || isAIGenerating"
+        class="mt-2 pt-2 border-t border-gray-200"
+      >
         <div class="flex items-center justify-between">
           <span class="text-xs text-gray-500">AI状态</span>
           <span class="text-xs font-medium text-nanyu-600 flex items-center">
@@ -42,7 +51,12 @@
         </div>
       </div>
     </div>
-    <p v-if="!isRecording" class="text-center text-xs text-gray-400 mt-2">等待中...</p>
+    <p
+      v-if="!isRecording"
+      class="text-center text-xs text-gray-400 mt-2"
+    >
+      等待中...
+    </p>
   </div>
 </template>
 

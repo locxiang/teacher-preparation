@@ -30,7 +30,7 @@ export class AliyunASRService {
   private audioDataBuffer: number[] = [] // 音频数据缓冲区（参考 DemoXunfei2.vue）
   private sendInterval: number | null = null // 发送定时器（参考 DemoXunfei2.vue）
 
-  constructor(serverUrl: string = '') {
+  constructor(serverUrl = '') {
     // 如果没有提供serverUrl，使用当前域名
     // 在生产环境通过 Nginx 代理，WebSocket 会自动代理到后端
     const baseUrl = serverUrl || window.location.origin
@@ -111,7 +111,7 @@ export class AliyunASRService {
   /**
    * 等待WebSocket连接
    */
-  private async waitForConnection(maxWaitTime: number = 5000): Promise<void> {
+  private async waitForConnection(maxWaitTime = 5000): Promise<void> {
     if (this.socket && this.socket.connected) {
       return
     }

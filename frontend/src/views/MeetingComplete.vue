@@ -5,8 +5,12 @@
       <div class="max-w-[1600px] mx-auto px-8 py-4">
         <div class="flex items-center justify-between">
           <div>
-            <h1 class="text-2xl font-semibold text-gray-900">会议创建完成</h1>
-            <p class="text-sm text-gray-500 mt-1">会议已创建，任务已初始化，可以开始会议了</p>
+            <h1 class="text-2xl font-semibold text-gray-900">
+              会议创建完成
+            </h1>
+            <p class="text-sm text-gray-500 mt-1">
+              会议已创建，任务已初始化，可以开始会议了
+            </p>
           </div>
         </div>
       </div>
@@ -18,38 +22,57 @@
         <!-- Steps -->
         <div class="mb-6 flex items-center justify-center space-x-4 text-sm font-medium">
           <div class="flex items-center text-gray-400">
-            <div class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center text-xs mr-2">1</div>
+            <div class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center text-xs mr-2">
+              1
+            </div>
             填写基本信息
           </div>
-          <div class="w-12 h-0.5 bg-gray-200"></div>
+          <div class="w-12 h-0.5 bg-gray-200" />
           <div class="flex items-center text-gray-400">
-            <div class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center text-xs mr-2">2</div>
+            <div class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center text-xs mr-2">
+              2
+            </div>
             上传资料
           </div>
-          <div class="w-12 h-0.5 bg-gray-200"></div>
+          <div class="w-12 h-0.5 bg-gray-200" />
           <div class="flex items-center text-nanyu-600">
-            <div class="w-6 h-6 rounded-full bg-nanyu-600 text-white flex items-center justify-center text-xs mr-2">3</div>
+            <div class="w-6 h-6 rounded-full bg-nanyu-600 text-white flex items-center justify-center text-xs mr-2">
+              3
+            </div>
             完成
           </div>
         </div>
 
         <!-- Loading State -->
-        <div v-if="isCreatingTask" class="bg-white border border-gray-200 rounded shadow-sm p-12 text-center">
-          <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-nanyu-600"></div>
-          <p class="mt-4 text-sm text-gray-600">正在创建任务...</p>
+        <div
+          v-if="isCreatingTask"
+          class="bg-white border border-gray-200 rounded shadow-sm p-12 text-center"
+        >
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-nanyu-600" />
+          <p class="mt-4 text-sm text-gray-600">
+            正在创建任务...
+          </p>
         </div>
 
         <!-- Error State -->
-        <div v-else-if="errorMessage" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">
+        <div
+          v-else-if="errorMessage"
+          class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm"
+        >
           {{ errorMessage }}
         </div>
 
         <!-- Success Content -->
-        <div v-else-if="meeting && taskInfo" class="space-y-5">
+        <div
+          v-else-if="meeting && taskInfo"
+          class="space-y-5"
+        >
           <!-- 会议信息 -->
           <div class="bg-white border border-gray-200 rounded shadow-sm">
             <div class="px-6 py-5 border-b border-gray-200 bg-gray-50">
-              <h2 class="text-sm font-semibold text-gray-900">会议信息</h2>
+              <h2 class="text-sm font-semibold text-gray-900">
+                会议信息
+              </h2>
             </div>
             <div class="p-6">
               <div class="space-y-0 divide-y divide-gray-200">
@@ -57,7 +80,10 @@
                   <span class="text-sm font-medium text-gray-600">会议名称</span>
                   <span class="text-sm text-gray-900">{{ meeting.name }}</span>
                 </div>
-                <div v-if="meeting.description" class="flex items-center justify-between py-3">
+                <div
+                  v-if="meeting.description"
+                  class="flex items-center justify-between py-3"
+                >
                   <span class="text-sm font-medium text-gray-600">会议描述</span>
                   <span class="text-sm text-gray-900">{{ meeting.description }}</span>
                 </div>
@@ -69,7 +95,10 @@
                   <span class="text-sm font-medium text-gray-600">任务ID</span>
                   <span class="text-sm text-gray-900 font-mono">{{ taskInfo.TaskId }}</span>
                 </div>
-                <div v-if="meeting.teachers && meeting.teachers.length > 0" class="py-3">
+                <div
+                  v-if="meeting.teachers && meeting.teachers.length > 0"
+                  class="py-3"
+                >
                   <span class="text-sm font-medium text-gray-600 block mb-2">参与教师</span>
                   <div class="flex flex-wrap gap-2">
                     <span
@@ -88,16 +117,36 @@
           <!-- 已上传文档 -->
           <div class="bg-white border border-gray-200 rounded shadow-sm">
             <div class="px-6 py-5 border-b border-gray-200 bg-gray-50">
-              <h2 class="text-sm font-semibold text-gray-900">已上传文档 ({{ documents.length }})</h2>
+              <h2 class="text-sm font-semibold text-gray-900">
+                已上传文档 ({{ documents.length }})
+              </h2>
             </div>
             <div class="p-6">
-              <div v-if="documents.length === 0" class="text-center py-8 text-gray-400">
-                <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <div
+                v-if="documents.length === 0"
+                class="text-center py-8 text-gray-400"
+              >
+                <svg
+                  class="w-12 h-12 mx-auto mb-3 text-gray-300"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
                 </svg>
-                <p class="text-sm">暂无文档</p>
+                <p class="text-sm">
+                  暂无文档
+                </p>
               </div>
-              <div v-else class="space-y-2">
+              <div
+                v-else
+                class="space-y-2"
+              >
                 <div
                   v-for="doc in documents"
                   :key="doc.id"
@@ -111,7 +160,9 @@
                       {{ getFileTypeIcon(doc.file_type) }}
                     </div>
                     <div class="flex-1 min-w-0">
-                      <div class="text-sm font-medium text-gray-800 truncate">{{ doc.original_filename }}</div>
+                      <div class="text-sm font-medium text-gray-800 truncate">
+                        {{ doc.original_filename }}
+                      </div>
                       <div class="text-xs text-gray-500 mt-0.5">
                         {{ doc.file_size_mb }} MB •
                         <span
@@ -140,7 +191,9 @@
           <!-- 操作按钮 -->
           <div class="bg-white border border-gray-200 rounded shadow-sm">
             <div class="px-6 py-5 border-b border-gray-200 bg-gray-50">
-              <h2 class="text-sm font-semibold text-gray-900">下一步操作</h2>
+              <h2 class="text-sm font-semibold text-gray-900">
+                下一步操作
+              </h2>
             </div>
             <div class="p-6">
               <div class="flex justify-end space-x-3">

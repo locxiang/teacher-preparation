@@ -1,7 +1,10 @@
 <template>
   <div class="max-w-[1600px] mx-auto px-6 pb-12">
     <!-- Loading State -->
-    <div v-if="isLoading || isGenerating" class="min-h-screen flex items-center justify-center">
+    <div
+      v-if="isLoading || isGenerating"
+      class="min-h-screen flex items-center justify-center"
+    >
       <div class="text-center w-full max-w-md">
         <div class="mb-8">
           <div class="w-20 h-20 mx-auto mb-4 bg-nanyu-100 rounded-full flex items-center justify-center">
@@ -18,16 +21,20 @@
         <!-- Progress Bar -->
         <div class="bg-gray-200 rounded-full h-3 overflow-hidden mb-4">
           <div
-            class="bg-gradient-to-r from-nanyu-500 to-nanyu-600 h-full rounded-full transition-all duration-300 ease-out"
+            class="bg-linear-to-r from-nanyu-500 to-nanyu-600 h-full rounded-full transition-all duration-300 ease-out"
             :style="{ width: `${progress}%` }"
-          ></div>
+          />
         </div>
 
         <!-- Progress Steps -->
         <div class="space-y-2 text-left">
-          <div v-for="(step, index) in progressSteps" :key="index" class="flex items-center text-sm">
+          <div
+            v-for="(step, index) in progressSteps"
+            :key="index"
+            class="flex items-center text-sm"
+          >
             <div
-              class="w-5 h-5 rounded-full flex items-center justify-center mr-3 flex-shrink-0 transition-all"
+              class="w-5 h-5 rounded-full flex items-center justify-center mr-3 shrink-0 transition-all"
               :class="step.completed
                 ? 'bg-green-500 text-white'
                 : step.active
@@ -53,51 +60,114 @@
     </div>
 
     <!-- Content State - 只要有会议数据就显示，即使没有摘要或出现错误 -->
-    <div v-else-if="meeting" class="min-h-screen bg-gray-50">
+    <div
+      v-else-if="meeting"
+      class="min-h-screen bg-gray-50"
+    >
       <!-- 错误提示横幅（如果有错误） -->
-      <div v-if="errorMessage" class="bg-red-50 border-b border-red-200 sticky top-0 z-20">
+      <div
+        v-if="errorMessage"
+        class="bg-red-50 border-b border-red-200 sticky top-0 z-20"
+      >
         <div class="max-w-[1600px] mx-auto px-8 py-3">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-3">
-              <svg class="w-5 h-5 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                class="w-5 h-5 text-red-600 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
-              <p class="text-sm text-red-800 font-medium">{{ errorMessage }}</p>
+              <p class="text-sm text-red-800 font-medium">
+                {{ errorMessage }}
+              </p>
             </div>
             <button
-              @click="errorMessage = ''"
               class="text-red-600 hover:text-red-800 transition-colors"
               title="关闭"
+              @click="errorMessage = ''"
             >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
         </div>
       </div>
       <!-- 顶部固定栏 - 企业级设计 -->
-      <div class="bg-white border-b border-gray-200 sticky shadow-sm" :class="errorMessage ? 'top-[52px] z-10' : 'top-0 z-10'">
+      <div
+        class="bg-white border-b border-gray-200 sticky shadow-sm"
+        :class="errorMessage ? 'top-[52px] z-10' : 'top-0 z-10'"
+      >
         <div class="max-w-[1600px] mx-auto px-8 py-4">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-6">
-              <h1 class="text-2xl font-semibold text-gray-900">{{ meeting.name || '会议总结' }}</h1>
+              <h1 class="text-2xl font-semibold text-gray-900">
+                {{ meeting.name || '会议总结' }}
+              </h1>
               <div class="flex items-center space-x-5 text-sm text-gray-500">
                 <span class="flex items-center">
-                  <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <svg
+                    class="w-4 h-4 mr-1.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                   {{ formatDuration(meeting) }}
                 </span>
                 <span class="flex items-center">
-                  <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  <svg
+                    class="w-4 h-4 mr-1.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                    />
                   </svg>
                   {{ participantCount }}人
                 </span>
                 <span class="flex items-center">
-                  <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  <svg
+                    class="w-4 h-4 mr-1.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                    />
                   </svg>
                   {{ messageCount }}条
                 </span>
@@ -105,19 +175,29 @@
             </div>
             <div class="flex items-center space-x-3">
               <button
-                @click="handleDownloadSummary"
                 :disabled="!summaryData"
                 class="px-4 py-2 text-sm border border-gray-300 rounded text-gray-700 hover:bg-gray-50 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                @click="handleDownloadSummary"
               >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                  />
                 </svg>
                 <span>下载总结</span>
               </button>
               <button
-                @click="regenerateSummary"
                 :disabled="isRegenerating"
                 class="px-4 py-2 text-sm border border-gray-300 rounded text-gray-700 hover:bg-gray-50 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                @click="regenerateSummary"
               >
                 {{ isRegenerating ? '重新生成中...' : '重新生成' }}
               </button>
@@ -138,24 +218,52 @@
           <!-- 左侧主内容区 -->
           <div class="col-span-12 xl:col-span-8 space-y-5">
             <!-- 会议录音 - 紧凑设计 -->
-            <div v-if="audioFiles.length > 0" class="bg-white border border-gray-200 rounded shadow-sm">
+            <div
+              v-if="audioFiles.length > 0"
+              class="bg-white border border-gray-200 rounded shadow-sm"
+            >
               <div class="px-5 py-3 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
                 <div class="flex items-center space-x-3">
-                  <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                  <svg
+                    class="w-5 h-5 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+                    />
                   </svg>
-                  <h3 class="text-sm font-semibold text-gray-900">会议录音</h3>
-                  <span v-if="audioFiles[0].duration" class="text-xs text-gray-500">
+                  <h3 class="text-sm font-semibold text-gray-900">
+                    会议录音
+                  </h3>
+                  <span
+                    v-if="audioFiles[0].duration"
+                    class="text-xs text-gray-500"
+                  >
                     {{ formatAudioDuration(audioFiles[0].duration) }}
                   </span>
                 </div>
                 <button
-                  @click="downloadAudio(audioFiles[0].filename)"
                   class="text-xs px-3 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors flex items-center space-x-1.5"
                   title="下载音频"
+                  @click="downloadAudio(audioFiles[0].filename)"
                 >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    />
                   </svg>
                   <span>下载</span>
                 </button>
@@ -172,11 +280,24 @@
               </div>
             </div>
             <!-- 全文摘要 -->
-            <div v-if="summaryData && (summaryData.paragraph_summary || summaryData.summary)" class="bg-white border border-gray-200 rounded shadow-sm">
+            <div
+              v-if="summaryData && (summaryData.paragraph_summary || summaryData.summary)"
+              class="bg-white border border-gray-200 rounded shadow-sm"
+            >
               <div class="px-5 py-3 border-b border-gray-200 bg-gray-50">
                 <h3 class="text-sm font-semibold text-gray-900 flex items-center">
-                  <svg class="w-4 h-4 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  <svg
+                    class="w-4 h-4 mr-2 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
                   </svg>
                   全文摘要
                 </h3>
@@ -187,22 +308,39 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- 无摘要数据时的提示 -->
-            <div v-else-if="!summaryData && !isGenerating" class="bg-yellow-50 border border-yellow-200 rounded shadow-sm">
+            <div
+              v-else-if="!summaryData && !isGenerating"
+              class="bg-yellow-50 border border-yellow-200 rounded shadow-sm"
+            >
               <div class="p-5">
                 <div class="flex items-start">
-                  <svg class="w-5 h-5 text-yellow-600 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  <svg
+                    class="w-5 h-5 text-yellow-600 mr-3 mt-0.5 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
                   </svg>
                   <div class="flex-1">
-                    <h3 class="text-sm font-semibold text-yellow-800 mb-1">暂无会议摘要</h3>
-                    <p class="text-sm text-yellow-700 mb-3">会议摘要生成失败或尚未生成，您可以查看下方的完整对话记录。</p>
+                    <h3 class="text-sm font-semibold text-yellow-800 mb-1">
+                      暂无会议摘要
+                    </h3>
+                    <p class="text-sm text-yellow-700 mb-3">
+                      会议摘要生成失败或尚未生成，您可以查看下方的完整对话记录。
+                    </p>
                     <button
                       v-if="meeting?.task_id"
-                      @click="regenerateSummary"
                       :disabled="isRegenerating"
                       class="px-4 py-2 text-sm bg-yellow-600 text-white rounded font-medium hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      @click="regenerateSummary"
                     >
                       {{ isRegenerating ? '重新生成中...' : '重新生成摘要' }}
                     </button>
@@ -212,11 +350,24 @@
             </div>
 
             <!-- 发言总结 -->
-            <div v-if="summaryData?.conversational_summary && summaryData.conversational_summary.length > 0" class="bg-white border border-gray-200 rounded shadow-sm">
+            <div
+              v-if="summaryData?.conversational_summary && summaryData.conversational_summary.length > 0"
+              class="bg-white border border-gray-200 rounded shadow-sm"
+            >
               <div class="px-5 py-3 border-b border-gray-200 bg-gray-50">
                 <h3 class="text-sm font-semibold text-gray-900 flex items-center">
-                  <svg class="w-4 h-4 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  <svg
+                    class="w-4 h-4 mr-2 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                    />
                   </svg>
                   发言总结
                 </h3>
@@ -229,15 +380,20 @@
                     class="border border-gray-200 rounded p-4 hover:border-blue-300 hover:bg-blue-50/50 transition-colors"
                   >
                     <div class="flex items-start mb-2">
-                      <div class="w-6 h-6 bg-blue-500 rounded flex items-center justify-center text-white text-xs font-semibold mr-3 mt-0.5 flex-shrink-0">
+                      <div class="w-6 h-6 bg-blue-500 rounded flex items-center justify-center text-white text-xs font-semibold mr-3 mt-0.5 shrink-0">
                         {{ index + 1 }}
                       </div>
                       <div class="flex-1 min-w-0">
                         <div class="font-semibold text-gray-900 text-sm mb-1">
                           {{ speaker.SpeakerName || speaker.SpeakerId || `发言人${index + 1}` }}
-                          <span v-if="speaker.SpeakerId" class="text-xs text-gray-500 ml-2 font-normal">(ID: {{ speaker.SpeakerId }})</span>
+                          <span
+                            v-if="speaker.SpeakerId"
+                            class="text-xs text-gray-500 ml-2 font-normal"
+                          >(ID: {{ speaker.SpeakerId }})</span>
                         </div>
-                        <p class="text-gray-700 leading-relaxed text-sm">{{ speaker.Summary }}</p>
+                        <p class="text-gray-700 leading-relaxed text-sm">
+                          {{ speaker.Summary }}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -246,11 +402,24 @@
             </div>
 
             <!-- 问答回顾 -->
-            <div v-if="summaryData?.questions_answering_summary && summaryData.questions_answering_summary.length > 0" class="bg-white border border-gray-200 rounded shadow-sm">
+            <div
+              v-if="summaryData?.questions_answering_summary && summaryData.questions_answering_summary.length > 0"
+              class="bg-white border border-gray-200 rounded shadow-sm"
+            >
               <div class="px-5 py-3 border-b border-gray-200 bg-gray-50">
                 <h3 class="text-sm font-semibold text-gray-900 flex items-center">
-                  <svg class="w-4 h-4 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <svg
+                    class="w-4 h-4 mr-2 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                   问答回顾
                 </h3>
@@ -264,14 +433,18 @@
                   >
                     <div class="mb-3">
                       <div class="flex items-start">
-                        <span class="inline-flex items-center justify-center w-5 h-5 bg-green-500 text-white text-xs font-semibold rounded mr-3 mt-0.5 flex-shrink-0">Q</span>
-                        <p class="text-gray-900 font-medium text-sm flex-1 leading-relaxed">{{ qa.Question }}</p>
+                        <span class="inline-flex items-center justify-center w-5 h-5 bg-green-500 text-white text-xs font-semibold rounded mr-3 mt-0.5 shrink-0">Q</span>
+                        <p class="text-gray-900 font-medium text-sm flex-1 leading-relaxed">
+                          {{ qa.Question }}
+                        </p>
                       </div>
                     </div>
                     <div class="pt-3 border-t border-gray-200">
                       <div class="flex items-start">
-                        <span class="inline-flex items-center justify-center w-5 h-5 bg-emerald-500 text-white text-xs font-semibold rounded mr-3 mt-0.5 flex-shrink-0">A</span>
-                        <p class="text-gray-700 leading-relaxed text-sm flex-1">{{ qa.Answer }}</p>
+                        <span class="inline-flex items-center justify-center w-5 h-5 bg-emerald-500 text-white text-xs font-semibold rounded mr-3 mt-0.5 shrink-0">A</span>
+                        <p class="text-gray-700 leading-relaxed text-sm flex-1">
+                          {{ qa.Answer }}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -280,11 +453,24 @@
             </div>
 
             <!-- 思维导图 -->
-            <div v-if="summaryData?.mind_map_summary && summaryData.mind_map_summary.length > 0" class="bg-white border border-gray-200 rounded shadow-sm">
+            <div
+              v-if="summaryData?.mind_map_summary && summaryData.mind_map_summary.length > 0"
+              class="bg-white border border-gray-200 rounded shadow-sm"
+            >
               <div class="px-5 py-3 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
                 <h3 class="text-sm font-semibold text-gray-900 flex items-center">
-                  <svg class="w-4 h-4 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                  <svg
+                    class="w-4 h-4 mr-2 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+                    />
                   </svg>
                   思维导图
                 </h3>
@@ -295,13 +481,23 @@
                   ref="mermaidRef"
                   class="mermaid relative"
                 >
-                    <button
-                      @click="toggleFullscreen"
-                      class="absolute top-3 right-3 z-10 px-3 py-1.5 text-xs bg-white border border-gray-300 rounded text-gray-700 hover:bg-gray-50 shadow-sm flex items-center space-x-1"
-                      title="全屏查看"
+                  <button
+                    class="absolute top-3 right-3 z-10 px-3 py-1.5 text-xs bg-white border border-gray-300 rounded text-gray-700 hover:bg-gray-50 shadow-sm flex items-center space-x-1"
+                    title="全屏查看"
+                    @click="toggleFullscreen"
+                  >
+                    <svg
+                      class="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
                     >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+                      />
                     </svg>
                     <span>全屏</span>
                   </button>
@@ -316,8 +512,18 @@
                 @click="showTranscript = !showTranscript"
               >
                 <h3 class="text-sm font-semibold text-gray-900 flex items-center">
-                  <svg class="w-4 h-4 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  <svg
+                    class="w-4 h-4 mr-2 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                    />
                   </svg>
                   完整对话记录
                   <span class="ml-2 text-xs font-normal text-gray-500">({{ messageCount }}条)</span>
@@ -329,10 +535,18 @@
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </div>
-              <div v-if="showTranscript" class="p-5 max-h-[500px] overflow-y-auto">
+              <div
+                v-if="showTranscript"
+                class="p-5 max-h-[500px] overflow-y-auto"
+              >
                 <div class="space-y-3">
                   <div
                     v-for="(message, index) in messages"
@@ -340,12 +554,17 @@
                     class="p-3 border border-gray-200 rounded hover:border-gray-300 hover:bg-gray-50 transition-colors"
                   >
                     <div class="flex items-center justify-between mb-2">
-                      <span v-if="message.speaker" class="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-0.5 rounded">
+                      <span
+                        v-if="message.speaker"
+                        class="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-0.5 rounded"
+                      >
                         {{ message.speaker }}
                       </span>
                       <span class="text-xs text-gray-400 font-mono">{{ formatTime(message.timestamp) }}</span>
                     </div>
-                    <p class="text-gray-800 text-sm leading-relaxed">{{ message.content }}</p>
+                    <p class="text-gray-800 text-sm leading-relaxed">
+                      {{ message.content }}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -355,11 +574,24 @@
           <!-- 右侧固定边栏 -->
           <div class="col-span-12 xl:col-span-4 space-y-5">
             <!-- 关键词 -->
-            <div v-if="summaryData?.meeting_assistance?.keywords && summaryData.meeting_assistance.keywords.length > 0" class="bg-white border border-gray-200 rounded shadow-sm">
+            <div
+              v-if="summaryData?.meeting_assistance?.keywords && summaryData.meeting_assistance.keywords.length > 0"
+              class="bg-white border border-gray-200 rounded shadow-sm"
+            >
               <div class="px-5 py-3 border-b border-gray-200 bg-gray-50">
                 <h3 class="text-sm font-semibold text-gray-900 flex items-center">
-                  <svg class="w-4 h-4 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                  <svg
+                    class="w-4 h-4 mr-2 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                    />
                   </svg>
                   关键词
                 </h3>
@@ -378,11 +610,24 @@
             </div>
 
             <!-- 重点内容 -->
-            <div v-if="summaryData?.meeting_assistance?.key_sentences && summaryData.meeting_assistance.key_sentences.length > 0" class="bg-white border border-gray-200 rounded shadow-sm">
+            <div
+              v-if="summaryData?.meeting_assistance?.key_sentences && summaryData.meeting_assistance.key_sentences.length > 0"
+              class="bg-white border border-gray-200 rounded shadow-sm"
+            >
               <div class="px-5 py-3 border-b border-gray-200 bg-gray-50">
                 <h3 class="text-sm font-semibold text-gray-900 flex items-center">
-                  <svg class="w-4 h-4 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                  <svg
+                    class="w-4 h-4 mr-2 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                    />
                   </svg>
                   重点内容
                 </h3>
@@ -398,11 +643,16 @@
                       <span class="text-xs font-semibold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded">
                         重点 {{ index + 1 }}
                       </span>
-                      <span v-if="sentence.Start !== undefined && sentence.End !== undefined" class="text-xs text-gray-500 font-mono">
+                      <span
+                        v-if="sentence.Start !== undefined && sentence.End !== undefined"
+                        class="text-xs text-gray-500 font-mono"
+                      >
                         {{ formatDurationFromMs(sentence.Start) }} - {{ formatDurationFromMs(sentence.End) }}
                       </span>
                     </div>
-                    <p class="text-gray-800 text-xs leading-relaxed">{{ sentence.Text }}</p>
+                    <p class="text-gray-800 text-xs leading-relaxed">
+                      {{ sentence.Text }}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -412,15 +662,28 @@
             <div class="bg-white border border-gray-200 rounded shadow-sm">
               <div class="px-5 py-3 border-b border-gray-200 bg-gray-50">
                 <h3 class="text-sm font-semibold text-gray-900 flex items-center">
-                  <svg class="w-4 h-4 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  <svg
+                    class="w-4 h-4 mr-2 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                    />
                   </svg>
                   待办事项
                 </h3>
               </div>
               <div class="p-4">
                 <!-- 新格式：meeting_assistance.actions -->
-                <div v-if="summaryData?.meeting_assistance?.actions && summaryData.meeting_assistance.actions.length > 0" class="space-y-2">
+                <div
+                  v-if="summaryData?.meeting_assistance?.actions && summaryData.meeting_assistance.actions.length > 0"
+                  class="space-y-2"
+                >
                   <div
                     v-for="(action, index) in summaryData.meeting_assistance.actions"
                     :key="index"
@@ -429,17 +692,25 @@
                     <input
                       type="checkbox"
                       class="mt-0.5 mr-2.5 w-3.5 h-3.5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 cursor-pointer"
-                    />
+                    >
                     <div class="flex-1 min-w-0">
-                      <p class="text-gray-800 text-xs leading-relaxed">{{ action.Text }}</p>
-                      <div v-if="action.Start !== undefined && action.End !== undefined" class="mt-1 text-xs text-gray-500 font-mono">
+                      <p class="text-gray-800 text-xs leading-relaxed">
+                        {{ action.Text }}
+                      </p>
+                      <div
+                        v-if="action.Start !== undefined && action.End !== undefined"
+                        class="mt-1 text-xs text-gray-500 font-mono"
+                      >
                         {{ formatDurationFromMs(action.Start) }} - {{ formatDurationFromMs(action.End) }}
                       </div>
                     </div>
                   </div>
                 </div>
                 <!-- 旧格式：action_items -->
-                <div v-else-if="summaryData?.action_items && summaryData.action_items.length > 0" class="space-y-2">
+                <div
+                  v-else-if="summaryData?.action_items && summaryData.action_items.length > 0"
+                  class="space-y-2"
+                >
                   <div
                     v-for="(item, index) in summaryData.action_items"
                     :key="index"
@@ -449,14 +720,25 @@
                       type="checkbox"
                       :checked="item.completed"
                       class="mt-0.5 mr-2.5 w-3.5 h-3.5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 cursor-pointer"
-                    />
+                    >
                     <div class="flex-1 min-w-0">
-                      <p class="text-gray-800 text-xs leading-relaxed">{{ item.task }}</p>
-                      <div v-if="item.assignee || item.deadline" class="mt-1 flex items-center flex-wrap gap-1.5 text-xs">
-                        <span v-if="item.assignee" class="text-gray-600">
+                      <p class="text-gray-800 text-xs leading-relaxed">
+                        {{ item.task }}
+                      </p>
+                      <div
+                        v-if="item.assignee || item.deadline"
+                        class="mt-1 flex items-center flex-wrap gap-1.5 text-xs"
+                      >
+                        <span
+                          v-if="item.assignee"
+                          class="text-gray-600"
+                        >
                           负责人: <span class="font-medium">{{ item.assignee }}</span>
                         </span>
-                        <span v-if="item.deadline" class="text-red-600">
+                        <span
+                          v-if="item.deadline"
+                          class="text-red-600"
+                        >
                           截止: <span class="font-medium">{{ item.deadline }}</span>
                         </span>
                       </div>
@@ -464,21 +746,49 @@
                   </div>
                 </div>
                 <!-- 无待办事项时的提示 -->
-                <div v-else class="text-center py-6 text-gray-400">
-                  <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                <div
+                  v-else
+                  class="text-center py-6 text-gray-400"
+                >
+                  <svg
+                    class="w-8 h-8 mx-auto mb-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                    />
                   </svg>
-                  <p class="text-xs">暂无待办事项</p>
+                  <p class="text-xs">
+                    暂无待办事项
+                  </p>
                 </div>
               </div>
             </div>
 
             <!-- 参与统计 -->
-            <div v-if="participants.length > 0" class="bg-white border border-gray-200 rounded shadow-sm">
+            <div
+              v-if="participants.length > 0"
+              class="bg-white border border-gray-200 rounded shadow-sm"
+            >
               <div class="px-5 py-3 border-b border-gray-200 bg-gray-50">
                 <h3 class="text-sm font-semibold text-gray-900 flex items-center">
-                  <svg class="w-4 h-4 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  <svg
+                    class="w-4 h-4 mr-2 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                    />
                   </svg>
                   参与统计
                 </h3>
@@ -493,12 +803,12 @@
                     <div class="flex items-center justify-between">
                       <div class="flex items-center min-w-0 flex-1">
                         <span
-                          class="w-3 h-3 rounded-full mr-2 flex-shrink-0"
+                          class="w-3 h-3 rounded-full mr-2 shrink-0"
                           :class="participant.color"
-                        ></span>
+                        />
                         <span class="text-sm font-medium text-gray-800 truncate">{{ participant.name }}</span>
                       </div>
-                      <div class="flex items-center text-gray-600 space-x-2 ml-2 flex-shrink-0">
+                      <div class="flex items-center text-gray-600 space-x-2 ml-2 shrink-0">
                         <span class="text-xs">{{ participant.count }}次</span>
                         <span class="text-gray-300">|</span>
                         <span class="text-xs font-semibold">{{ participant.percentage }}%</span>
@@ -509,7 +819,7 @@
                         class="h-1.5 rounded-full transition-all duration-300"
                         :class="participant.color"
                         :style="{ width: `${participant.percentage}%` }"
-                      ></div>
+                      />
                     </div>
                   </div>
                 </div>
@@ -521,16 +831,23 @@
     </div>
 
     <!-- Error State -->
-    <div v-else-if="errorMessage" class="min-h-screen flex items-center justify-center">
+    <div
+      v-else-if="errorMessage"
+      class="min-h-screen flex items-center justify-center"
+    >
       <div class="text-center">
         <div class="w-20 h-20 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
           <span class="text-4xl">❌</span>
         </div>
-        <h2 class="text-2xl font-bold text-gray-800 mb-2">加载失败</h2>
-        <p class="text-gray-500 mb-6">{{ errorMessage }}</p>
+        <h2 class="text-2xl font-bold text-gray-800 mb-2">
+          加载失败
+        </h2>
+        <p class="text-gray-500 mb-6">
+          {{ errorMessage }}
+        </p>
         <button
-          @click="loadMeetingData"
           class="bg-nanyu-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-nanyu-700 transition-colors"
+          @click="loadMeetingData"
         >
           重试
         </button>
@@ -540,7 +857,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick, watch, type ComponentPublicInstance } from 'vue'
+import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getMeeting, completeMeeting, downloadSummary, type Meeting } from '@/services/meeting'
 import mermaid from 'mermaid'
@@ -570,7 +887,7 @@ interface SummaryData {
     Title?: string
     Topic?: Array<{
       Title?: string
-      Topic?: any[]
+      Topic?: Array<{ Title?: string; Topic?: Array<{ Title?: string; Topic?: unknown[] }> }>
     }>
   }>
 
@@ -680,58 +997,6 @@ const updateProgress = () => {
     // 其他情况，使用已完成步骤的进度
     progress.value = (completedSteps / steps.length) * 100
   }
-}
-
-// 开始进度模拟
-const startProgressSimulation = () => {
-  progress.value = 0
-  progressSteps.value.forEach(step => {
-    step.completed = false
-    step.active = false
-  })
-
-  // 步骤1: 加载会议信息
-  progressSteps.value[0].active = true
-  updateProgress()
-
-  setTimeout(() => {
-    progressSteps.value[0].completed = true
-    progressSteps.value[0].active = false
-    progressSteps.value[1].active = true
-    updateProgress()
-
-    // 步骤2: 分析会议内容
-    setTimeout(() => {
-      progressSteps.value[1].completed = true
-      progressSteps.value[1].active = false
-      progressSteps.value[2].active = true
-      updateProgress()
-
-      // 步骤3: 生成会议摘要
-      setTimeout(() => {
-        progressSteps.value[2].completed = true
-        progressSteps.value[2].active = false
-        progressSteps.value[3].active = true
-        updateProgress()
-
-        // 步骤4: 提取关键要点
-        setTimeout(() => {
-          progressSteps.value[3].completed = true
-          progressSteps.value[3].active = false
-          progressSteps.value[4].active = true
-          updateProgress()
-
-          // 步骤5: 完成
-          setTimeout(() => {
-            progressSteps.value[4].completed = true
-            progressSteps.value[4].active = false
-            progress.value = 100
-            updateProgress()
-          }, 500)
-        }, 800)
-      }, 1000)
-    }, 600)
-  }, 0)
 }
 
 // 解析转写文本为消息列表（支持 JSONL 格式和旧格式）
@@ -904,15 +1169,6 @@ const formatAudioDuration = (seconds: number): string => {
   const mins = Math.floor(seconds / 60)
   const secs = Math.floor(seconds % 60)
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-}
-
-// 格式化文件大小
-const formatFileSize = (bytes: number): string => {
-  if (!bytes) return '0 B'
-  const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`
 }
 
 // 生成摘要 - 使用 SSE 流式接口
@@ -1148,7 +1404,7 @@ const generateSummary = async () => {
 
                 // 关闭生成状态
                 isGenerating.value = false
-                
+
                 // 如果摘要数据已更新，重新渲染思维导图
                 if (summaryData.value?.mind_map_summary && summaryData.value.mind_map_summary.length > 0) {
                   // 使用 nextTick 确保 DOM 已更新
@@ -1198,8 +1454,6 @@ const regenerateSummary = async () => {
   }
   // 清空错误消息
   errorMessage.value = ''
-  errorBannerMessage.value = ''
-  showErrorBanner.value = false
   // 重新生成摘要
   await generateSummary()
   isRegenerating.value = false
@@ -1207,7 +1461,12 @@ const regenerateSummary = async () => {
 
 // 计算参与统计
 // 转换思维导图数据为 Mermaid 语法（递归函数）
-const convertToMermaidSyntax = (node: { Title?: string; Topic?: any[] }, indent = 0): string => {
+type MindMapNode = {
+  Title?: string
+  Topic?: MindMapNode[]
+}
+
+const convertToMermaidSyntax = (node: MindMapNode, indent = 0): string => {
   const indentStr = '    '.repeat(indent)
   const title = (node.Title || '未命名节点').replace(/\n/g, ' ')
   let result = `${indentStr}${title}\n`

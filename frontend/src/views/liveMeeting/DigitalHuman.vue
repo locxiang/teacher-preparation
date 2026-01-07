@@ -5,8 +5,12 @@
         <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-gray-800 flex items-center justify-center border-2 border-gray-700">
           <span class="text-2xl">👤</span>
         </div>
-        <p class="text-xs text-gray-400">数字人视频</p>
-        <p class="text-xs text-gray-500 mt-1">视频加载中...</p>
+        <p class="text-xs text-gray-400">
+          数字人视频
+        </p>
+        <p class="text-xs text-gray-500 mt-1">
+          视频加载中...
+        </p>
       </div>
     </div>
   </div>

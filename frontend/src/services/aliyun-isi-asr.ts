@@ -33,12 +33,12 @@ export class AliyunISIASRService {
   private analyser: AnalyserNode | null = null
   private audioDataCallback: ((data: Uint8Array) => void) | null = null
 
-  private taskId: string = '' // 任务ID，32位hex字符串
-  private appKey: string = '' // AppKey
-  private token: string = '' // Token
+  private taskId = '' // 任务ID，32位hex字符串
+  private appKey = '' // AppKey
+  private token = '' // Token
 
   private startTranscriptionSent = false // 是否已发送StartTranscription
-  private recordingStartTime: number = 0 // 录音开始时间
+  private recordingStartTime = 0 // 录音开始时间
 
   /**
    * 生成32位hex字符串
