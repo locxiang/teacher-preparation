@@ -30,5 +30,5 @@ python-docx>=1.1.0
 
 dashscope>=1.25.2
 
-# SerpApi 网页搜索（相关资料搜索）
+# SerpApi 百度搜索（网络资料搜索）
 google-search-results>=2.4.2

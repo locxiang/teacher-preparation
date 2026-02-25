@@ -70,7 +70,7 @@ class Config:
     DASHSCOPE_API_KEY = os.getenv('DASHSCOPE_API_KEY')
     DASHSCOPE_APP_ID = os.getenv('DASHSCOPE_APP_ID')  # 智能体应用ID
 
-    # SerpApi 网页搜索（相关资料搜索）https://serpapi.com/search-api
+    # SerpApi 搜索（网络资料，支持谷歌/百度）https://serpapi.com/search-api
     SERPAPI_API_KEY = os.getenv('SERPAPI_API_KEY')
     
     @staticmethod

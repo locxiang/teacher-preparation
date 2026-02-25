@@ -241,7 +241,7 @@ def get_api_keys():
                 },
                 'serpapi': {
                     'api_key': {
-                        'name': 'SerpApi API Key（相关资料搜索）',
+                        'name': 'SerpApi API Key（谷歌/百度搜索，网络资料）',
                         'value': mask_secret(Config.SERPAPI_API_KEY or ''),
                         'is_set': bool(Config.SERPAPI_API_KEY),
                         'full_value': Config.SERPAPI_API_KEY or None,

@@ -16,8 +16,31 @@
               d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
             />
           </svg>
-          相关资料
+          网络资料
         </h3>
+      </div>
+      <!-- 搜索引擎切换 -->
+      <div class="flex rounded-lg border border-gray-200 bg-gray-100 p-0.5 mb-3">
+        <button
+          type="button"
+          class="flex-1 px-2 py-1.5 text-xs font-medium rounded-md transition-colors"
+          :class="searchEngine === 'google'
+            ? 'bg-white text-nanyu-700 shadow-sm'
+            : 'text-gray-600 hover:text-gray-900'"
+          @click="searchEngine = 'google'"
+        >
+          谷歌搜索
+        </button>
+        <button
+          type="button"
+          class="flex-1 px-2 py-1.5 text-xs font-medium rounded-md transition-colors"
+          :class="searchEngine === 'baidu'
+            ? 'bg-white text-nanyu-700 shadow-sm'
+            : 'text-gray-600 hover:text-gray-900'"
+          @click="searchEngine = 'baidu'"
+        >
+          百度搜索
+        </button>
       </div>
       <!-- 手动搜索按钮（始终显示） -->
       <button
@@ -65,7 +88,7 @@
         v-else-if="searchHistory.length === 0"
         class="text-sm text-gray-400 text-center py-6"
       >
-        点击上方「搜索资料」按钮，根据当前对话内容搜索相关资料
+        点击上方「搜索资料」按钮，根据当前对话内容搜索网络资料
       </div>
 
       <!-- 本次会议搜索历史（按时间倒序，最新的在上） -->
@@ -127,7 +150,7 @@
             v-else
             class="p-3 text-xs text-gray-400 text-center"
           >
-            暂无相关资料
+            暂无网络资料
           </div>
         </section>
       </div>
@@ -137,7 +160,13 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
-import { searchRelatedMaterials, type RelatedMaterial } from '@/services/related-materials'
+import {
+  searchRelatedMaterials,
+  type RelatedMaterial,
+  type SearchEngine,
+} from '@/services/related-materials'
+
+const SEARCH_ENGINE_KEY = 'related_materials_search_engine'
 
 interface Message {
   id: string
@@ -162,6 +191,25 @@ const props = defineProps<Props>()
 const searchHistory = ref<SearchRecord[]>([])
 const isLoading = ref(false)
 const errorMessage = ref('')
+
+// 搜索引擎：谷歌 | 百度，默认百度，持久化到 localStorage
+const getInitialEngine = (): SearchEngine => {
+  try {
+    const saved = localStorage.getItem(SEARCH_ENGINE_KEY)
+    if (saved === 'google' || saved === 'baidu') return saved
+  } catch {
+    /* ignore */
+  }
+  return 'baidu'
+}
+const searchEngine = ref<SearchEngine>(getInitialEngine())
+watch(searchEngine, (v) => {
+  try {
+    localStorage.setItem(SEARCH_ENGINE_KEY, v)
+  } catch {
+    /* ignore */
+  }
+}, { immediate: true })
 const lastSearchTime = ref(0)
 const MIN_SEARCH_INTERVAL = 30000 // 自动触发：30 秒内不重复搜索
 const DEBOUNCE_DELAY = 4000 // 新消息后 4 秒再触发搜索
@@ -190,7 +238,7 @@ const getTagClass = (tag: string): string => {
 const groupByTag = (items: RelatedMaterial[]): Record<string, RelatedMaterial[]> => {
   const map: Record<string, RelatedMaterial[]> = {}
   for (const item of items) {
-    const tag = item.tags?.[0] || '相关资料'
+    const tag = item.tags?.[0] || '网络资料'
     if (!map[tag]) map[tag] = []
     map[tag].push(item)
   }
@@ -226,7 +274,7 @@ const doSearch = async (force = false) => {
         }))
       : [{ role: 'user' as const, content: '会议主题' }]
 
-    const result = await searchRelatedMaterials(msgs)
+    const result = await searchRelatedMaterials(msgs, searchEngine.value)
 
     // 追加到本次会议搜索历史（最新的在最前）
     searchHistory.value = [
@@ -250,7 +298,7 @@ const doSearch = async (force = false) => {
 const handleManualSearch = () => {
   const hasContent = props.messages.some((m) => m.isFinal !== false && m.content?.trim())
   if (!hasContent) {
-    errorMessage.value = '请先进行对话，再搜索相关资料'
+    errorMessage.value = '请先进行对话，再搜索网络资料'
     return
   }
   doSearch(true)

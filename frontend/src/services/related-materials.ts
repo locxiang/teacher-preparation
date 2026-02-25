@@ -1,5 +1,5 @@
 /**
- * 相关资料服务 - 根据对话内容搜索网上相关资料
+ * 网络资料服务 - 根据对话内容搜索网上资料
  */
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
@@ -23,11 +23,17 @@ export interface SearchResult {
   data: RelatedMaterial[]
 }
 
+/** 搜索引擎：谷歌 | 百度 */
+export type SearchEngine = 'google' | 'baidu'
+
 /**
- * 根据对话内容搜索相关资料
+ * 根据对话内容搜索网络资料
+ * @param messages 对话消息
+ * @param engine 搜索引擎，默认百度
  */
 export async function searchRelatedMaterials(
   messages: Array<{ role: 'user' | 'assistant'; content: string }>,
+  engine: SearchEngine = 'baidu',
 ): Promise<SearchResult> {
   const token = localStorage.getItem('access_token')
   if (!token) {
@@ -40,17 +46,17 @@ export async function searchRelatedMaterials(
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ messages }),
+    body: JSON.stringify({ messages, engine }),
   })
 
   const result: RelatedMaterialsResponse = await response.json()
 
   if (!response.ok) {
-    throw new Error(result.message || '搜索相关资料失败')
+    throw new Error(result.message || '搜索网络资料失败')
   }
 
   if (!result.success) {
-    throw new Error(result.message || '搜索相关资料失败')
+    throw new Error(result.message || '搜索网络资料失败')
   }
 
   return {

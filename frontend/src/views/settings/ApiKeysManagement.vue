@@ -303,7 +303,7 @@
           </div>
         </div>
 
-        <!-- SerpApi 配置（相关资料搜索） -->
+        <!-- SerpApi 谷歌/百度搜索（网络资料） -->
         <div
           v-if="apiKeys.backend.serpapi"
           class="mb-4"
@@ -322,7 +322,7 @@
                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
               />
             </svg>
-            SerpApi（相关资料搜索）
+            SerpApi（谷歌/百度搜索，网络资料）
           </h5>
           <div class="space-y-2">
             <div

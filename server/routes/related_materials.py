@@ -1,5 +1,5 @@
 """
-相关资料路由 - 根据对话内容自动搜索网上相关资料
+网络资料路由 - 根据对话内容自动搜索网上资料
 使用 AI 提取关键词、SerpApi 官方 SDK 搜索、AI 打标签
 """
 import json
@@ -16,7 +16,7 @@ except ImportError:
     DASHSCOPE_AVAILABLE = False
 
 try:
-    from serpapi import GoogleSearch
+    from serpapi import GoogleSearch, BaiduSearch
     SERPAPI_AVAILABLE = True
 except ImportError:
     SERPAPI_AVAILABLE = False
@@ -77,12 +77,15 @@ def _extract_search_keywords(chat_content: str) -> tuple[list[str], str]:
     return fallback, '、'.join(fallback)
 
 
-def _search_web(query: str, max_results: int = 6) -> tuple[list[dict], str | None]:
+def _search_web(
+    query: str, max_results: int = 6, engine: str = "baidu"
+) -> tuple[list[dict], str | None]:
     """
     使用 SerpApi 官方 Python SDK 搜索。
+    engine: "google" | "baidu"
     返回: (结果列表, 错误信息，成功时为 None)
     """
-    api_key = (Config.SERPAPI_API_KEY or '').strip()
+    api_key = (Config.SERPAPI_API_KEY or "").strip()
     if not api_key:
         return [], (
             "请配置 SERPAPI_API_KEY。在 serpapi.com 注册获取，.env 中设置 SERPAPI_API_KEY=你的key"
@@ -90,52 +93,64 @@ def _search_web(query: str, max_results: int = 6) -> tuple[list[dict], str | Non
     if not SERPAPI_AVAILABLE:
         return [], "请安装 SerpApi 依赖: pip install google-search-results"
 
+    use_google = (engine or "baidu").lower() == "google"
+
     # 为教育备课场景增强搜索词，提高相关性
     enhanced_query = query
-    if query and '教学' not in query and '教案' not in query and '备课' not in query:
+    if query and "教学" not in query and "教案" not in query and "备课" not in query:
         enhanced_query = f"{query} 教学 教案"
 
-    params = {
-        "engine": "google",
-        "q": enhanced_query,
-        "google_domain": "google.com",
-        "hl": "zh-cn",
-        "gl": "cn",
-        "num": max_results,
-        "api_key": api_key,
-    }
+    if use_google:
+        params = {
+            "engine": "google",
+            "q": enhanced_query,
+            "google_domain": "google.com",
+            "hl": "zh-cn",
+            "gl": "cn",
+            "num": max_results,
+            "api_key": api_key,
+        }
+        SearchClass = GoogleSearch
+    else:
+        params = {
+            "engine": "baidu",
+            "q": enhanced_query,
+            "api_key": api_key,
+        }
+        if max_results:
+            params["rn"] = min(max_results, 50)
+        SearchClass = BaiduSearch
 
     try:
-        search = GoogleSearch(params)
+        search = SearchClass(params)
         data = search.get_dict()
-
-        organic = data.get('organic_results') or data.get('organic') or []
+        organic = data.get("organic_results") or data.get("organic") or []
 
         if not organic and enhanced_query != query:
-            logger.info(f"[相关资料] 增强查询无结果，回退到原始关键词: {query}")
+            logger.info(f"[网络资料] 增强查询无结果，回退到原始关键词: {query}")
             params["q"] = query
-            search2 = GoogleSearch(params)
+            search2 = SearchClass(params)
             data2 = search2.get_dict()
-            organic = data2.get('organic_results') or data2.get('organic') or []
+            organic = data2.get("organic_results") or data2.get("organic") or []
 
         if not organic:
-            logger.info(f"[相关资料] SerpApi 返回空结果, query={enhanced_query}")
+            logger.info(f"[网络资料] SerpApi 返回空结果, engine={engine}, query={enhanced_query}")
 
         items = []
         for r in organic[:max_results]:
-            link = r.get('link') or r.get('url', '')
+            link = r.get("link") or r.get("url", "")
             if not link:
                 continue
             items.append({
-                'title': r.get('title', ''),
-                'url': link,
-                'snippet': r.get('snippet', ''),
+                "title": r.get("title", ""),
+                "url": link,
+                "snippet": r.get("snippet", ""),
             })
         return items, None
     except Exception as e:
         err_str = str(e)
-        logger.warning(f"[相关资料] SerpApi 搜索失败: {e}")
-        if '403' in err_str or 'Invalid API key' in err_str.lower():
+        logger.warning(f"[网络资料] SerpApi 搜索失败 (engine={engine}): {e}")
+        if "403" in err_str or "Invalid API key" in err_str.lower():
             return [], (
                 "搜索服务返回 403：API Key 无效或额度已用尽。"
                 "请到 serpapi.com 检查 Key 和用量，更新 .env 中的 SERPAPI_API_KEY"
@@ -147,7 +162,7 @@ def _add_tags_with_ai(items: list[dict], chat_context: str) -> list[dict]:
     """使用 AI 为每条结果打上业务相关标签"""
     if not items or not DASHSCOPE_AVAILABLE or not Config.DASHSCOPE_API_KEY:
         for item in items:
-            item.setdefault('tags', ['相关资料'])
+            item.setdefault('tags', ['网络资料'])
         return items
 
     # 构建标签候选（业务人员能理解的词汇）
@@ -195,17 +210,17 @@ def _add_tags_with_ai(items: list[dict], chat_context: str) -> list[dict]:
                     if i < len(parsed) and isinstance(parsed[i], list):
                         item['tags'] = parsed[i][:2]
                     else:
-                        item['tags'] = ['相关资料']
+                        item['tags'] = ['网络资料']
             else:
                 for item in items:
-                    item.setdefault('tags', ['相关资料'])
+                    item.setdefault('tags', ['网络资料'])
         else:
             for item in items:
-                item.setdefault('tags', ['相关资料'])
+                item.setdefault('tags', ['网络资料'])
     except Exception as e:
         logger.warning(f"AI 打标签失败: {e}")
         for item in items:
-            item.setdefault('tags', ['相关资料'])
+            item.setdefault('tags', ['网络资料'])
     return items
 
 
@@ -213,13 +228,16 @@ def _add_tags_with_ai(items: list[dict], chat_context: str) -> list[dict]:
 @jwt_required()
 def search_related_materials():
     """
-    根据对话内容搜索相关资料
+    根据对话内容搜索网络资料
     请求体: { "messages": [ { "role": "user"|"assistant", "content": "..." } ] }
     返回: { "success": true, "data": [ { "title", "url", "snippet", "tags" } ] }
     """
     try:
         data = request.get_json() or {}
-        messages = data.get('messages', [])
+        messages = data.get("messages", [])
+        engine = (data.get("engine") or "baidu").lower()
+        if engine not in ("google", "baidu"):
+            engine = "baidu"
         if not messages or not isinstance(messages, list):
             return jsonify({'success': False, 'message': '请提供对话内容', 'data': []}), 400
 
@@ -237,14 +255,14 @@ def search_related_materials():
 
         # 1. AI 根据对话分析并总结搜索关键词
         keywords, display_keyword = _extract_search_keywords(chat_content)
-        logger.info(f"[相关资料] AI 总结关键词: {display_keyword}, 用于搜索: {keywords}")
+        logger.info(f"[网络资料] AI 总结关键词: {display_keyword}, 用于搜索: {keywords}")
 
         # 2. 搜索（优先用多关键词组合，提高召回率）
         query = ' '.join(keywords[:2]) if len(keywords) >= 2 else (keywords[0] if keywords else chat_content[:50])
         if not query:
             return jsonify({'success': True, 'keyword': '', 'data': []})
 
-        raw_results, search_error = _search_web(query.strip(), max_results=6)
+        raw_results, search_error = _search_web(query.strip(), max_results=6, engine=engine)
         if search_error:
             return jsonify({
                 'success': False,
@@ -266,13 +284,13 @@ def search_related_materials():
                     'title': it.get('title', ''),
                     'url': it.get('url', ''),
                     'snippet': (it.get('snippet', '') or '')[:120],
-                    'tags': it.get('tags', ['相关资料']),
+                    'tags': it.get('tags', ['网络资料']),
                 }
                 for it in items
             ],
         })
     except Exception as e:
-        logger.exception("相关资料搜索失败")
+        logger.exception("网络资料搜索失败")
         return jsonify({
             'success': False,
             'message': str(e),
