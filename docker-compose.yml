@@ -1,5 +1,9 @@
+# 开发编排：容器外改代码、容器内热更新，数据统一放在 data 目录
+# 启动：docker-compose up
+#
+# 阿里云 NLS SDK：将 nls-*.whl 放入 data/nls/ 目录，后端启动时会自动安装
+
 services:
-  # MySQL 数据库服务
   mysql:
     image: mysql:8.0
     container_name: teacher_prep_mysql
@@ -9,21 +13,21 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE:-teacher_preparation}
       MYSQL_USER: ${MYSQL_USER:-teacher_user}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-teacher_password}
-      TZ: Asia/Shanghai  # 设置容器时区为北京时间
-    command: --default-time-zone='+08:00'  # 设置MySQL默认时区为北京时间
+      TZ: Asia/Shanghai
+    command: --default-time-zone='+08:00'
     ports:
       - "${MYSQL_PORT:-3306}:3306"
     volumes:
       - ./data/mysql:/var/lib/mysql
     networks:
-      - teacher_prep_network
+      - app_network
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpassword}"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
-  # phpMyAdmin 服务
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
     platform: linux/amd64
@@ -41,91 +45,56 @@ services:
       mysql:
         condition: service_healthy
     networks:
-      - teacher_prep_network
+      - app_network
 
-  # 后端服务（Flask API）
   backend:
-    image: python:3.13
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    image: teacher_prep_backend:dev
     container_name: teacher_prep_backend
     restart: unless-stopped
     working_dir: /app
-    # 明确指定 .env 文件位置（相对于 docker-compose.yml）
-    # 注意：如果 .env 文件不存在，docker-compose 会报错
-    # 请在项目根目录创建 .env 文件，包含以下变量：
-    # ALIBABA_CLOUD_ACCESS_KEY_ID=your_key_id
-    # ALIBABA_CLOUD_ACCESS_KEY_SECRET=your_key_secret
-    # TYTINGWU_APP_KEY=your_app_key
-    # SECRET_KEY=your_secret_key
     env_file:
       - server/.env
     environment:
-
-      # 数据库配置
       DATABASE_URL: mysql+pymysql://${MYSQL_USER:-teacher_user}:${MYSQL_PASSWORD:-teacher_password}@mysql:3306/${MYSQL_DATABASE:-teacher_preparation}?charset=utf8mb4
+      FLASK_DEBUG: "true"
     ports:
       - "${FLASK_PORT:-5001}:5001"
     volumes:
       - ./server:/app
-      - ./nls-1.1.0-py3-none-any.whl:/tmp/nls-1.1.0-py3-none-any.whl:ro
-      - ./data/backend_packages:/usr/local/lib/python3.13/site-packages
-    entrypoint: >
-      bash -c "
-        set -e
-        # 安装系统依赖
-        apt-get update && apt-get install -y gcc curl && rm -rf /var/lib/apt/lists/*
-        # 确保 pip 可用（Python 3.13 可能需要先安装 pip）
-        if ! python -m pip --version &>/dev/null; then
-          echo '安装 pip...' &&
-          python -m ensurepip --upgrade || curl -sS https://bootstrap.pypa.io/get-pip.py | python
-        fi &&
-        # 升级 pip
-        python -m pip install --upgrade pip setuptools wheel &&
-        # 安装项目依赖
-        python -m pip install --quiet --no-cache-dir -r requirements.txt &&
-        # 安装阿里云实时转写SDK（如果存在）
-        if [ -f /tmp/nls-1.1.0-py3-none-any.whl ]; then
-          echo '安装阿里云实时转写SDK...' &&
-          python -m pip install --quiet --no-cache-dir /tmp/nls-1.1.0-py3-none-any.whl &&
-          echo '✓ 阿里云实时转写SDK安装完成'
-        else
-          echo '警告: nls-1.1.0-py3-none-any.whl 文件未找到，跳过SDK安装'
-        fi &&
-        # 启动应用
-        python app.py
-      "
+      - ./data/nls:/tmp/nls_whl:ro
     depends_on:
       mysql:
         condition: service_healthy
     networks:
-      - teacher_prep_network
+      - app_network
+    init: true
 
-  # 前端服务（Vite 开发服务器）
   frontend:
-    image: node:18-alpine
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: teacher_prep_frontend:dev
     container_name: teacher_prep_frontend
     restart: unless-stopped
     working_dir: /app
     environment:
-      - NODE_ENV=development
-      - CI=true
+      NODE_ENV: development
     ports:
       - "${FRONTEND_PORT:-5173}:5173"
     volumes:
       - ./frontend:/app
-    entrypoint: >
-      sh -c "
-        if ! command -v pnpm &> /dev/null; then
-          npm install -g pnpm
-        fi &&
-        pnpm install &&
-        pnpm dev --host 0.0.0.0
-      "
+      - ./data/frontend_node_modules:/app/node_modules
+      - ./data/pnpm_store:/root/.local/share/pnpm/store
+    entrypoint: ["sh", "-c", "pnpm install --no-frozen-lockfile && exec pnpm dev --host 0.0.0.0"]
     depends_on:
       - backend
     networks:
-      - teacher_prep_network
+      - app_network
+    init: true
 
 networks:
-  teacher_prep_network:
+  app_network:
     driver: bridge
-

@@ -303,6 +303,70 @@
           </div>
         </div>
 
+        <!-- SerpApi 配置（相关资料搜索） -->
+        <div
+          v-if="apiKeys.backend.serpapi"
+          class="mb-4"
+        >
+          <h5 class="text-xs font-semibold text-gray-700 mb-3 flex items-center">
+            <svg
+              class="w-4 h-4 mr-1.5 text-gray-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            SerpApi（相关资料搜索）
+          </h5>
+          <div class="space-y-2">
+            <div
+              v-for="(keyInfo, key) in apiKeys.backend.serpapi"
+              :key="key"
+              class="bg-gray-50 rounded p-3 border border-gray-200"
+            >
+              <div class="flex items-start justify-between">
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xs font-semibold text-gray-700">{{ keyInfo.name }}</span>
+                    <span
+                      :class="keyInfo.is_set
+                        ? 'px-2 py-0.5 bg-green-50 text-green-700 rounded text-xs font-medium'
+                        : 'px-2 py-0.5 bg-gray-100 text-gray-500 rounded text-xs font-medium'"
+                    >
+                      {{ keyInfo.is_set ? '已配置' : '未配置' }}
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-2 mt-2">
+                    <code class="text-xs font-mono bg-white px-2 py-1 rounded border border-gray-300 text-gray-800 flex-1 min-w-0 truncate">
+                      {{ getDisplayValue(keyInfo, `backend.serpapi.${key}`) }}
+                    </code>
+                    <button
+                      v-if="keyInfo.full_value"
+                      class="px-2 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors shrink-0"
+                      @click="toggleShowFullValue(`backend.serpapi.${key}`)"
+                    >
+                      {{ showFullValues[`backend.serpapi.${key}`] ? '隐藏' : '显示' }}
+                    </button>
+                    <button
+                      v-if="keyInfo.full_value"
+                      class="px-2 py-1 text-xs bg-nanyu-600 text-white rounded hover:bg-nanyu-700 transition-colors shrink-0"
+                      @click="copyToClipboard(keyInfo.full_value, keyInfo.name)"
+                    >
+                      复制
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Flask配置 -->
         <div class="mb-4">
           <h5 class="text-xs font-semibold text-gray-700 mb-3 flex items-center">
@@ -384,6 +448,7 @@ interface ApiKeysData {
     tytingwu: Record<string, ApiKeyInfo>
     nls: Record<string, ApiKeyInfo>
     dashscope: Record<string, ApiKeyInfo>
+    serpapi?: Record<string, ApiKeyInfo>
     flask: Record<string, ApiKeyInfo>
   }
   frontend: {

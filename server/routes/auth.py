@@ -239,6 +239,14 @@ def get_api_keys():
                         'full_value': Config.DASHSCOPE_APP_ID or None,
                     },
                 },
+                'serpapi': {
+                    'api_key': {
+                        'name': 'SerpApi API Key（相关资料搜索）',
+                        'value': mask_secret(Config.SERPAPI_API_KEY or ''),
+                        'is_set': bool(Config.SERPAPI_API_KEY),
+                        'full_value': Config.SERPAPI_API_KEY or None,
+                    },
+                },
                 'flask': {
                     'secret_key': {
                         'name': 'Flask Secret Key',

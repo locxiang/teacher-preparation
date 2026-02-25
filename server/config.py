@@ -69,6 +69,9 @@ class Config:
     # 阿里云百炼 DashScope 配置
     DASHSCOPE_API_KEY = os.getenv('DASHSCOPE_API_KEY')
     DASHSCOPE_APP_ID = os.getenv('DASHSCOPE_APP_ID')  # 智能体应用ID
+
+    # SerpApi 网页搜索（相关资料搜索）https://serpapi.com/search-api
+    SERPAPI_API_KEY = os.getenv('SERPAPI_API_KEY')
     
     @staticmethod
     def print_config():
@@ -121,6 +124,7 @@ class Config:
         # DashScope配置
         logger.info(f"DASHSCOPE_API_KEY: {'已设置' if Config.DASHSCOPE_API_KEY else '未设置'}")
         logger.info(f"DASHSCOPE_APP_ID: {'已设置' if Config.DASHSCOPE_APP_ID else '未设置'}")
+        logger.info(f"SERPAPI_API_KEY: {'已设置' if Config.SERPAPI_API_KEY else '未设置'}")
         
         # 环境变量检查（显示实际从环境变量读取的值）
         logger.info("-" * 60)

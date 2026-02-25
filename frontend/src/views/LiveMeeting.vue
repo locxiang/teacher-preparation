@@ -38,7 +38,7 @@
 
         <div class="flex-1 flex space-x-4 overflow-hidden min-h-0">
           <!-- Left Sidebar -->
-          <div class="w-64 flex flex-col space-y-4 overflow-y-auto shrink-0">
+          <div class="w-64 flex flex-col space-y-4 overflow-y-auto shrink-0 min-h-0">
             <!-- Audio Visualizer -->
             <AudioVisualizer
               :audio-bars="audioBars"
@@ -61,7 +61,7 @@
             <ReferenceDocs :meeting-id="meetingId" />
           </div>
 
-          <!-- Right Column: Chat History -->
+          <!-- Center: Chat History -->
           <div class="flex-1 flex flex-col overflow-hidden min-h-0">
             <ChatHistory
               :messages="messages"
@@ -74,6 +74,9 @@
               @stop-ai-voice="stopAIVoicePlayback"
             />
           </div>
+
+          <!-- Right Column: Related Materials -->
+          <RelatedMaterials :messages="messages" />
         </div>
       </div>
     </div>
@@ -96,6 +99,7 @@ import ParticipantsList from './liveMeeting/ParticipantsList.vue'
 import ReferenceDocs from './liveMeeting/ReferenceDocs.vue'
 import DigitalHuman from './liveMeeting/DigitalHuman.vue'
 import ChatHistory from './liveMeeting/ChatHistory.vue'
+import RelatedMaterials from './liveMeeting/RelatedMaterials.vue'
 
 interface Stage {
   id: string

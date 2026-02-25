@@ -37,7 +37,7 @@ from services.websocket_service import init_socketio
 socketio = init_socketio(app)
 
 # 导入路由
-from routes import meeting_bp, health_bp, auth_bp, summary_bp, ai_chat_bp, tts_bp
+from routes import meeting_bp, health_bp, auth_bp, summary_bp, ai_chat_bp, tts_bp, related_materials_bp
 from routes.teacher import teacher_bp
 from routes.document import document_bp
 from routes.tytingwu import tytingwu_bp
@@ -68,6 +68,7 @@ app.register_blueprint(tytingwu_bp, url_prefix='/api/tytingwu')
 app.register_blueprint(summary_bp, url_prefix='/api/summary')
 app.register_blueprint(ai_chat_bp, url_prefix='/api/ai-chat')
 app.register_blueprint(tts_bp, url_prefix='/api/tts')
+app.register_blueprint(related_materials_bp, url_prefix='/api/related-materials')
 
 # 配置文件上传大小限制（50MB）
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024

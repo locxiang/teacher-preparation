@@ -54,6 +54,9 @@ TYTINGWU_APP_KEY=your_tytingwu_app_key
 DASHSCOPE_API_KEY=your_dashscope_api_key
 DASHSCOPE_APP_ID=your_app_id
 
+# SerpApi 网页搜索（相关资料搜索）https://serpapi.com/search-api
+SERPAPI_API_KEY=your_serpapi_api_key
+
 # 应用密钥
 SECRET_KEY=your_secret_key
 
