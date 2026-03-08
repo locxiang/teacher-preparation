@@ -73,6 +73,7 @@ services:
     init: true
 
   frontend:
+    platform: linux/amd64
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -82,6 +83,7 @@ services:
     working_dir: /app
     environment:
       NODE_ENV: development
+      CI: "true"
     ports:
       - "${FRONTEND_PORT:-5173}:5173"
     volumes:

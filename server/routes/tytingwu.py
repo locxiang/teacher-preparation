@@ -84,11 +84,27 @@ def create_realtime_task():
         logger.error(f'错误信息: {error_msg}')
         logger.error(f'错误堆栈:\n{error_traceback}')
         logger.error('=== 错误详情结束 ===')
-        
+
+        # 对阿里云常见错误码提供友好提示
+        user_message = error_msg
+        if 'BRK.OverdueService' in error_msg:
+            user_message = (
+                '账号服务已超配额。试用期已过或免费额度已用完，'
+                '请登录阿里云通义听悟控制台升级为商用版：'
+                'https://nls-portal.console.aliyun.com/tingwu/management'
+            )
+        elif 'BRK.InvalidService' in error_msg:
+            user_message = '账号未开通通义听悟服务，请先在控制台开通：https://nls-portal.console.aliyun.com/tingwu/overview'
+        elif 'BRK.OverdueTenant' in error_msg:
+            user_message = '阿里云账号已欠费，请充值后重试'
+        elif 'BRK.InvalidAppKey' in error_msg:
+            user_message = '项目 AppKey 无效，请检查 TYTINGWU_APP_KEY 配置是否正确'
+
         return jsonify({
             'success': False,
-            'message': error_msg,
-            'error_type': type(e).__name__
+            'message': user_message,
+            'error_type': type(e).__name__,
+            'raw_error': error_msg
         }), 500
 
 

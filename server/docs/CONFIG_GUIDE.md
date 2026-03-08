@@ -104,6 +104,45 @@ TYTINGWU_APP_KEY=your_app_key
 - AccessKey信息已配置到 `.env` 文件中，请妥善保管，不要泄露
 - 通义听悟只需要AppKey，不需要AppSecret
 
+## 阿里云通义听悟开通指南
+
+### 需要开通的服务
+
+1. **通义听悟（实时记录）**
+   - 控制台：<https://nls-portal.console.aliyun.com/tingwu/overview>
+   - 点击「立即开通」→ 选择「试用」或「商用」
+   - **试用版**：90 天免费，实时记录 2 路并发
+   - **商用版**：按使用时长计费，实时记录 200 路并发
+
+2. **创建项目**
+   - 左侧「我的项目」→「创建项目」
+   - 获取项目 **AppKey**（用于 `TYTINGWU_APP_KEY`）
+
+3. **创建 AccessKey**
+   - <https://ram.console.aliyun.com/manage/ak>
+   - 获取 AccessKey ID 和 AccessKey Secret
+
+### 常见错误码说明
+
+| 错误码 | 含义 | 解决方案 |
+|--------|------|----------|
+| **BRK.OverdueService** | 账号服务已超配额 | 试用额度用完或试用期已过，需在[控制台](https://nls-portal.console.aliyun.com/tingwu/management)升级为商用版 |
+| BRK.InvalidService | 账号未开通服务 | 在控制台开通通义听悟服务 |
+| BRK.OverdueTenant | 账号已欠费 | 充值阿里云账户 |
+| BRK.InvalidAppKey | 无效的 AppKey | 检查项目 AppKey 是否正确 |
+
+### BRK.OverdueService 详细说明
+
+当创建实时转写任务返回 `BRK.OverdueService` 时，表示：
+
+- **试用版**：90 天试用期已过，或当日/当月免费额度已用完
+- **商用版**：并发路数超限（试用 2 路，商用 200 路）
+
+**处理步骤**：
+1. 登录 [通义听悟控制台](https://nls-portal.console.aliyun.com/tingwu/management)
+2. 在「服务管理与开通」中，将「实时记录」升级为商用版
+3. 商用版按实际使用时长计费，详见 [计费说明](https://help.aliyun.com/zh/tingwu/pricing-and-billing-rules)
+
 ### 生产环境配置
 ```env
 SECRET_KEY=your-production-secret-key-minimum-32-characters
