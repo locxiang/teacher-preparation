@@ -96,11 +96,23 @@
                   <option value="">
                     选择学科
                   </option>
-                  <option>数学</option>
                   <option>语文</option>
+                  <option>数学</option>
                   <option>英语</option>
+                  <option>思想政治</option>
+                  <option>历史</option>
+                  <option>地理</option>
                   <option>物理</option>
                   <option>化学</option>
+                  <option>生物</option>
+                  <option>音乐</option>
+                  <option>美术</option>
+                  <option>体育</option>
+                  <option>道德与法治</option>
+                  <option>信息科技</option>
+                  <option>信息技术</option>
+                  <option>通用技术</option>
+                  <option>心理健康</option>
                 </select>
               </div>
               <div>
