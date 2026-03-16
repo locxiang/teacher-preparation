@@ -184,7 +184,7 @@
           </div>
           <div class="flex items-center space-x-2">
             <div :class="['w-3 h-3 rounded-full', isAISpeaking || isAIThinking ? 'bg-nanyu-600 animate-pulse' : 'bg-gray-400']" />
-            <span>AI助手</span>
+            <span>南博士</span>
           </div>
         </div>
       </div>
@@ -217,7 +217,7 @@
               ]"
             >
               <div class="font-medium mb-1 text-xs opacity-80">
-                {{ message.role === 'user' ? '我' : 'AI助手' }}
+                {{ message.role === 'user' ? '我' : '南博士' }}
               </div>
               <div
                 :class="[
@@ -888,7 +888,7 @@ onMounted(() => {
 
   messages.value.push({
     role: 'assistant',
-    content: '你好！我是备课AI助手，可以与你进行实时语音对话，帮助你进行教学准备和讨论。点击中间的按钮开始说话，我会实时识别你的语音并为你提供专业的教学建议和备课支持。',
+    content: '你好！我是南博士，重庆南渝中学的备课助手。可以与你进行实时语音对话，帮助你进行教学准备和讨论。点击中间的按钮开始说话，我会实时识别你的语音并为你提供专业的教学建议和备课支持。',
     timestamp: now - 300000,
   })
   // 确保初始时滚动到底部

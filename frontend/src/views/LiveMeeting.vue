@@ -710,7 +710,7 @@ const triggerAISpeech = async () => {
           const newMessage: Message = {
             id: aiMessageId,
             type: 'ai',
-            speaker: 'AI助手',
+            speaker: '南博士',
             content: aiResponseText,
             timestamp: Date.now(),
             relativeTime: undefined, // AI消息没有相对时间

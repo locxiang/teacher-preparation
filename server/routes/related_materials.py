@@ -35,7 +35,7 @@ def _extract_search_keywords(chat_content: str) -> tuple[list[str], str]:
         fallback = [w for w in words if len(w) > 1][:3] or [chat_content[:30]]
         return fallback, '、'.join(fallback)
 
-    prompt = f"""你是一个备课会议助手。请根据以下备课会议对话内容，分析并总结出适合用于网上搜索资料的关键词。
+    prompt = f"""你是重庆南渝中学的备课会议助手「南博士」。请根据以下备课会议对话内容，分析并总结出适合用于网上搜索资料的关键词。
 
 要求：
 1. 理解对话讨论的核心主题（如教学主题、学科概念、教学方法、课程标准等）
@@ -171,7 +171,7 @@ def _add_tags_with_ai(items: list[dict], chat_context: str) -> list[dict]:
         '教学设计', '课堂活动', '评价方法', '教材解读', '备课参考',
     ]
 
-    prompt = f"""根据备课会议对话背景，为以下每条网上资料打 1-2 个标签。
+    prompt = f"""你是重庆南渝中学的备课助手「南博士」。根据备课会议对话背景，为以下每条网上资料打 1-2 个标签。
 标签从以下候选中选择：{', '.join(tag_candidates)}
 若都不合适，可自拟一个简短标签（2-4字）。
 
